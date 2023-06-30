@@ -140,7 +140,7 @@ void init_vertex_buffer()
 	glGenBuffers(1, &vertex_buffer_obj);
 	glBindBuffer(GL_ARRAY_BUFFER, vertex_buffer_obj);
 	glBufferData(GL_ARRAY_BUFFER,
-			vertex_positions.size() * 4,
+			vertex_positions.size() * sizeof(float),
 			vertex_positions.data(),
 			GL_STATIC_DRAW);
 
