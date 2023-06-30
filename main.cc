@@ -1,4 +1,5 @@
 #define GL_GLEXT_PROTOTYPES
+
 #include <SFML/Window.hpp>
 #include <SFML/OpenGL.hpp>
 #include <string>
@@ -15,7 +16,7 @@ GLuint vao{};
 GLuint vertex_buffer_obj{};
 GLuint program{};
 
-vector<float> vertex_positions
+const vector<float> vertex_positions
 {
 	0.75f, 0.75f, 0.0f, 1.0f,
 	0.75f, -0.75f, 0.0f, 1.0f,
@@ -37,7 +38,7 @@ string load_shader(string const& filename)
 	return shader;
 }
 
-GLuint create_shader(GLenum shader_type, string const& shader_file)
+GLuint create_shader(GLenum shader_type, string & shader_file)
 {
 	// create OpenGL shader object
 	GLuint shader{glCreateShader(shader_type)};
@@ -139,7 +140,7 @@ void init_vertex_buffer()
 	glGenBuffers(1, &vertex_buffer_obj);
 	glBindBuffer(GL_ARRAY_BUFFER, vertex_buffer_obj);
 	glBufferData(GL_ARRAY_BUFFER,
-			vertex_positions.size(),
+			vertex_positions.size() * 4,
 			vertex_positions.data(),
 			GL_STATIC_DRAW);
 
@@ -149,17 +150,24 @@ void init_vertex_buffer()
 
 void init()
 {
+	init_vertex_buffer();
+	init_program();
+
 	glGenVertexArrays(1, &vao);
 	glBindVertexArray(vao);
-
-	init_vertex_buffer();
-
-	init_program();
 }
 
 void display()
 {
-	glVertexAttribPointer(0, 3, GL_FLOAT, false, 0, vertex_positions.data());
+	glUseProgram(program);
+	glBindBuffer(GL_ARRAY_BUFFER, vertex_buffer_obj);
+
+	glEnableVertexAttribArray(0);
+	glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 0, 0);
+	glDrawArrays(GL_TRIANGLES, 0, 3);
+
+	glDisableVertexAttribArray(0);
+	glUseProgram(0);
 }
 
 int main()
