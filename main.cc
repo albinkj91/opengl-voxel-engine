@@ -18,62 +18,66 @@ GLuint vao{};
 GLuint vertex_buffer_obj{};
 GLuint program{};
 
+GLfloat zNear{0.5f};
+GLfloat zFar{100.0f};
+
 float screen_width{1.0f};
 float screen_height{1.0f};
 float offset_x{0.0f};
 float offset_y{0.0f};
+float offset_z{-10.0f};
 
 sf::Clock rotation_clock{};
 
 const vector<float> vertex_positions
 {
-	0.5f, 0.5f, -1.0f, 1.0f,
-	0.5f, -0.5f, -1.0f, 1.0f,
-	-0.5f, 0.5f, -1.0f, 1.0f,
+	0.5f, 0.5f, 0.5f, 1.0f,
+	0.5f, -0.5f, 0.5f, 1.0f,
+	-0.5f, 0.5f, 0.5f, 1.0f,
 
-	-0.5f, 0.5f, -1.0f, 1.0f,
-	0.5f, -0.5f, -1.0f, 1.0f,
-	-0.5f, -0.5f, -1.0f, 1.0f,
+	-0.5f, 0.5f, 0.5f, 1.0f,
+	0.5f, -0.5f, 0.5f, 1.0f,
+	-0.5f, -0.5f, 0.5f, 1.0f,
 
-	-0.5f, 0.5f, -2.0f, 1.0f,
-	-0.5f, 0.5f, -1.0f, 1.0f,
-	-0.5f, -0.5f, -1.0f, 1.0f,
+	-0.5f, 0.5f, -0.5f, 1.0f,
+	-0.5f, 0.5f, 0.5f, 1.0f,
+	-0.5f, -0.5f, 0.5f, 1.0f,
 
-	-0.5f, 0.5f, -2.0f, 1.0f,
-	-0.5f, -0.5f, -1.0f, 1.0f,
-	-0.5f, -0.5f, -2.0f, 1.0f,
+	-0.5f, 0.5f, -0.5f, 1.0f,
+	-0.5f, -0.5f, 0.5f, 1.0f,
+	-0.5f, -0.5f, -0.5f, 1.0f,
 
-	-0.5f, -0.5f, -1.0f, 1.0f,
-	0.5f, -0.5f, -1.0f, 1.0f,
-	0.5f, -0.5f, -2.0f, 1.0f,
+	-0.5f, -0.5f, 0.5f, 1.0f,
+	0.5f, -0.5f, 0.5f, 1.0f,
+	0.5f, -0.5f, -0.5f, 1.0f,
 
-	-0.5f, -0.5f, -1.0f, 1.0f,
-	0.5f, -0.5f, -2.0f, 1.0f,
-	-0.5f, -0.5f, -2.0f, 1.0f,
+	-0.5f, -0.5f, 0.5f, 1.0f,
+	0.5f, -0.5f, -0.5f, 1.0f,
+	-0.5f, -0.5f, -0.5f, 1.0f,
 
-	0.5f, 0.5f, -1.0f, 1.0f,
-	0.5f, 0.5f, -2.0f, 1.0f,
-	0.5f, -0.5f, -1.0f, 1.0f,
+	0.5f, 0.5f, 0.5f, 1.0f,
+	0.5f, 0.5f, -0.5f, 1.0f,
+	0.5f, -0.5f, 0.5f, 1.0f,
 
-	0.5f, -0.5f, -1.0f, 1.0f,
-	0.5f, 0.5f, -2.0f, 1.0f,
-	0.5f, -0.5f, -2.0f, 1.0f,
+	0.5f, -0.5f, 0.5f, 1.0f,
+	0.5f, 0.5f, -0.5f, 1.0f,
+	0.5f, -0.5f, -0.5f, 1.0f,
 
-	0.5f, 0.5f, -1.0f, 1.0f,
-	-0.5f, 0.5f, -1.0f, 1.0f,
-	0.5f, 0.5f, -2.0f, 1.0f,
+	0.5f, 0.5f, 0.5f, 1.0f,
+	-0.5f, 0.5f, 0.5f, 1.0f,
+	0.5f, 0.5f, -0.5f, 1.0f,
 
-	0.5f, 0.5f, -2.0f, 1.0f,
-	-0.5f, 0.5f, -1.0f, 1.0f,
-	-0.5f, 0.5f, -2.0f, 1.0f,
+	0.5f, 0.5f, -0.5f, 1.0f,
+	-0.5f, 0.5f, 0.5f, 1.0f,
+	-0.5f, 0.5f, -0.5f, 1.0f,
 
-	0.5f, -0.5f, -2.0f, 1.0f,
-	0.5f, 0.5f, -2.0f, 1.0f,
-	-0.5f, 0.5f, -2.0f, 1.0f,
+	0.5f, -0.5f, -0.5f, 1.0f,
+	0.5f, 0.5f, -0.5f, 1.0f,
+	-0.5f, 0.5f, -0.5f, 1.0f,
 
-	0.5f, -0.5f, -2.0f, 1.0f,
-	-0.5f, 0.5f, -2.0f, 1.0f,
-	-0.5f, -0.5f, -2.0f, 1.0f,
+	0.5f, -0.5f, -0.5f, 1.0f,
+	-0.5f, 0.5f, -0.5f, 1.0f,
+	-0.5f, -0.5f, -0.5f, 1.0f,
 
 
 	0.f, 1.f, 0.f, 1.0f,
@@ -250,10 +254,40 @@ void init_vertex_buffer()
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 }
 
-void set_rotation_matrix()
+glm::mat4 rotation_x_matrix()
 {
 	sf::Time elapsed{rotation_clock.getElapsedTime()};
-	float angle{(fmod(elapsed.asSeconds(), 10.0f) / 10.0f) *  (3.14159f * 2.0f)};
+	float angle{(fmod(elapsed.asSeconds(), 5.0f) / 5.0f) * (3.14159f * 2.0f)};
+
+	glm::mat4 matrix{1.0f};
+
+	matrix[1].y = cos(angle);
+	matrix[1].z = sin(angle);
+	matrix[2].y = -sin(angle);
+	matrix[2].z = cos(angle);
+
+	return matrix;
+}
+
+glm::mat4 rotation_y_matrix()
+{
+	sf::Time elapsed{rotation_clock.getElapsedTime()};
+	float angle{(fmod(elapsed.asSeconds(), 5.0f) / 5.0f) * (3.14159f * 2.0f)};
+
+	glm::mat4 matrix{1.0f};
+
+	matrix[0].x = cos(angle);
+	matrix[0].z = -sin(angle);
+	matrix[2].x = sin(angle);
+	matrix[2].z = cos(angle);
+
+	return matrix;
+}
+
+glm::mat4 rotation_z_matrix()
+{
+	sf::Time elapsed{rotation_clock.getElapsedTime()};
+	float angle{(fmod(elapsed.asSeconds(), 5.0f) / 5.0f) * (3.14159f * 2.0f)};
 
 	glm::mat4 matrix{1.0f};
 
@@ -262,27 +296,35 @@ void set_rotation_matrix()
 	matrix[1].x = -sin(angle);
 	matrix[1].y = cos(angle);
 
-	GLint rot_mat_loc{glGetUniformLocation(program, "rotationMatrix")};
-	glUniformMatrix4fv(rot_mat_loc, 1, GL_FALSE, glm::value_ptr(matrix));
+	return matrix;
 }
 
-void set_projection_matrix()
+void set_perspective_matrix()
 {
 	glm::mat4 matrix{1.0f};
-	GLfloat frustum_scale{1.0f};
-	GLfloat zNear{0.5f};
-	GLfloat zFar{3.0f};
+	GLfloat frustum_scale{10.0f};
 
 	matrix[0].x = frustum_scale * (screen_height / screen_width);
 	matrix[1].y = frustum_scale;
 	matrix[2].z = (zFar + zNear) / (zNear - zFar);
 	matrix[2].w = -1.0f;
-	matrix[3].z = (2 * zFar * zNear) / (zNear - zFar);
+	matrix[3].z = ((2 * zFar * zNear) / (zNear - zFar));
+
+	glUseProgram(program);
+	GLint perspective_matrix_location{glGetUniformLocation(program, "perspectiveMatrix")};
+	glUniformMatrix4fv(perspective_matrix_location, 1, GL_FALSE, glm::value_ptr(matrix));
+	glUseProgram(0);
+}
+
+glm::mat4 offset_matrix()
+{
+	glm::mat4 matrix{1.0f};
+
 	matrix[3].x = offset_x;
 	matrix[3].y = offset_y;
+	matrix[3].z = offset_z;
 
-	GLint proj_mat_loc{glGetUniformLocation(program, "perspectiveMatrix")};
-	glUniformMatrix4fv(proj_mat_loc, 1, GL_FALSE, glm::value_ptr(matrix));
+	return matrix;
 }
 
 void init()
@@ -300,11 +342,15 @@ void init()
 
 void display()
 {
-	glUseProgram(program);
-	set_projection_matrix();
-	set_rotation_matrix();
-	glBindBuffer(GL_ARRAY_BUFFER, vertex_buffer_obj);
+	set_perspective_matrix();
 
+	glUseProgram(program);
+	glm::mat4 matrix{offset_matrix() * rotation_x_matrix() * rotation_y_matrix() * rotation_z_matrix()};
+
+	GLint transform_matrix_location{glGetUniformLocation(program, "transformMatrix")};
+	glUniformMatrix4fv(transform_matrix_location, 1, GL_FALSE, glm::value_ptr(matrix));
+
+	glBindBuffer(GL_ARRAY_BUFFER, vertex_buffer_obj);
 	glEnableVertexAttribArray(0);
 	glEnableVertexAttribArray(1);
 	glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 0, 0);
@@ -318,21 +364,29 @@ void display()
 
 void handle_keypress()
 {
-	if (sf::Keyboard::isKeyPressed(sf::Keyboard::Left))
+	if(sf::Keyboard::isKeyPressed(sf::Keyboard::Left))
 	{
-		offset_x -= 0.04f * (screen_height / screen_width);
+		offset_x -= 0.04f * (screen_width / screen_height);
 	}
-	else if (sf::Keyboard::isKeyPressed(sf::Keyboard::Right))
+	else if(sf::Keyboard::isKeyPressed(sf::Keyboard::Right))
 	{
-		offset_x += 0.04f * (screen_height / screen_width);
+		offset_x += 0.04f * (screen_width / screen_height);
 	}
-	else if (sf::Keyboard::isKeyPressed(sf::Keyboard::Down))
+	else if(sf::Keyboard::isKeyPressed(sf::Keyboard::Down))
 	{
-		offset_y -= 0.04f;
+		offset_y -= 0.04f * (screen_width / screen_height);
 	}
-	else if (sf::Keyboard::isKeyPressed(sf::Keyboard::Up))
+	else if(sf::Keyboard::isKeyPressed(sf::Keyboard::Up))
 	{
-		offset_y += 0.04f;
+		offset_y += 0.04f * (screen_width / screen_height);
+	}
+	else if(sf::Keyboard::isKeyPressed(sf::Keyboard::W))
+	{
+		offset_z -= 0.04f * (zFar / zNear) / 10.0f;
+	}
+	else if(sf::Keyboard::isKeyPressed(sf::Keyboard::S))
+	{
+		offset_z += 0.04f * (zFar / zNear) / 10.0f;
 	}
 }
 
