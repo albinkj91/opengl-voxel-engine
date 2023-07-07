@@ -27,11 +27,14 @@ float screen_width{1.0f};
 float screen_height{1.0f};
 float offset_x{0.0f};
 float offset_y{0.0f};
-float offset_z{-100.0f};
+float offset_z{0.0f};
 
 int image_width{};
 int image_height{};
 int channels{};
+
+glm::vec3 camera_pos{0.f, 0.f, 3.f};
+glm::vec3 camera_target{0.f, 0.f, 0.f};
 
 sf::Clock rotation_clock{};
 
@@ -394,6 +397,15 @@ glm::mat4 offset_matrix()
 	return matrix;
 }
 
+void set_camera_matrix()
+{
+	glm::mat4 matrix{glm::lookAt(camera_pos, camera_target, glm::vec3{0.f, 1.f, 0.f})};
+	glUseProgram(program);
+	int camera_transform_location{glGetUniformLocation(program, "cameraTransform")};
+	glUniformMatrix4fv(camera_transform_location, 1, GL_FALSE, glm::value_ptr(matrix));
+	glUseProgram(0);
+}
+
 void init()
 {
 	init_vertex_buffer();
@@ -411,9 +423,10 @@ void init()
 void display()
 {
 	set_perspective_matrix();
+	set_camera_matrix();
 
 	glUseProgram(program);
-	glm::mat4 matrix{offset_matrix() * rotation_x_matrix() * rotation_y_matrix() * rotation_z_matrix()};
+	glm::mat4 matrix{offset_matrix()};
 
 	int transform_matrix_location{glGetUniformLocation(program, "transformMatrix")};
 	glUniformMatrix4fv(transform_matrix_location, 1, GL_FALSE, glm::value_ptr(matrix));
@@ -437,27 +450,27 @@ void handle_keypress()
 {
 	if(sf::Keyboard::isKeyPressed(sf::Keyboard::Left))
 	{
-		offset_x -= 0.04f * (screen_width / screen_height);
+		//offset_x -= 0.04f * (screen_width / screen_height);
 	}
 	else if(sf::Keyboard::isKeyPressed(sf::Keyboard::Right))
 	{
-		offset_x += 0.04f * (screen_width / screen_height);
+		//offset_x += 0.04f * (screen_width / screen_height);
 	}
 	else if(sf::Keyboard::isKeyPressed(sf::Keyboard::Down))
 	{
-		offset_y -= 0.04f * (screen_width / screen_height);
+		//offset_y -= 0.04f * (screen_width / screen_height);
 	}
 	else if(sf::Keyboard::isKeyPressed(sf::Keyboard::Up))
 	{
-		offset_y += 0.04f * (screen_width / screen_height);
+		//offset_y += 0.04f * (screen_width / screen_height);
 	}
 	else if(sf::Keyboard::isKeyPressed(sf::Keyboard::W))
 	{
-		offset_z -= 0.04f * (zFar / zNear) / 10.0f;
+		//offset_z -= 0.04f * (zFar / zNear) / 10.0f;
 	}
 	else if(sf::Keyboard::isKeyPressed(sf::Keyboard::S))
 	{
-		offset_z += 0.04f * (zFar / zNear) / 10.0f;
+		//offset_z += 0.04f * (zFar / zNear) / 10.0f;
 	}
 }
 
