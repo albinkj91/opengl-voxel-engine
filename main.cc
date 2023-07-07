@@ -12,20 +12,26 @@
 #include <glm/mat4x4.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
+#include "stb_image.h"
+
 using namespace std;
 
-GLuint vao{};
-GLuint vertex_buffer_obj{};
-GLuint program{};
+unsigned int vao{};
+unsigned int vertex_buffer_obj{};
+unsigned int program{};
 
-GLfloat zNear{0.5f};
-GLfloat zFar{100.0f};
+float zNear{0.5f};
+float zFar{100.0f};
 
 float screen_width{1.0f};
 float screen_height{1.0f};
 float offset_x{0.0f};
 float offset_y{0.0f};
-float offset_z{-10.0f};
+float offset_z{-100.0f};
+
+int image_width{};
+int image_height{};
+int channels{};
 
 sf::Clock rotation_clock{};
 
@@ -80,53 +86,102 @@ const vector<float> vertex_positions
 	-0.5f, -0.5f, -0.5f, 1.0f,
 
 
-	0.f, 1.f, 0.f, 1.0f,
-	0.f, 1.f, 0.f, 1.0f,
-	0.f, 1.f, 0.f, 1.0f,
+	0.f, 1.f, 0.f, 1.f,
+	0.f, 1.f, 0.f, 1.f,
+	0.f, 1.f, 0.f, 1.f,
 
-	0.f, 1.f, 0.f, 1.0f,
-	0.f, 1.f, 0.f, 1.0f,
-	0.f, 1.f, 0.f, 1.0f,
+	0.f, 1.f, 0.f, 1.f,
+	0.f, 1.f, 0.f, 1.f,
+	0.f, 1.f, 0.f, 1.f,
 
-	1.f, 0.f, 0.f, 1.0f,
-	1.f, 0.f, 0.f, 1.0f,
-	1.f, 0.f, 0.f, 1.0f,
+	1.f, 0.f, 0.f, 1.f,
+	1.f, 0.f, 0.f, 1.f,
+	1.f, 0.f, 0.f, 1.f,
 
-	1.f, 0.f, 0.f, 1.0f,
-	1.f, 0.f, 0.f, 1.0f,
-	1.f, 0.f, 0.f, 1.0f,
+	1.f, 0.f, 0.f, 1.f,
+	1.f, 0.f, 0.f, 1.f,
+	1.f, 0.f, 0.f, 1.f,
 
-	0.f, 0.f, 1.f, 1.0f,
-	0.f, 0.f, 1.f, 1.0f,
-	0.f, 0.f, 1.f, 1.0f,
+	0.f, 0.f, 1.f, 1.f,
+	0.f, 0.f, 1.f, 1.f,
+	0.f, 0.f, 1.f, 1.f,
 
-	0.f, 0.f, 1.f, 1.0f,
-	0.f, 0.f, 1.f, 1.0f,
-	0.f, 0.f, 1.f, 1.0f,
+	0.f, 0.f, 1.f, 1.f,
+	0.f, 0.f, 1.f, 1.f,
+	0.f, 0.f, 1.f, 1.f,
 
-	1.f, 1.f, 0.f, 1.0f,
-	1.f, 1.f, 0.f, 1.0f,
-	1.f, 1.f, 0.f, 1.0f,
+	1.f, 1.f, 0.f, 1.f,
+	1.f, 1.f, 0.f, 1.f,
+	1.f, 1.f, 0.f, 1.f,
 
-	1.f, 1.f, 0.f, 1.0f,
-	1.f, 1.f, 0.f, 1.0f,
-	1.f, 1.f, 0.f, 1.0f,
+	1.f, 1.f, 0.f, 1.f,
+	1.f, 1.f, 0.f, 1.f,
+	1.f, 1.f, 0.f, 1.f,
 
-	0.f, 1.f, 1.f, 1.0f,
-	0.f, 1.f, 1.f, 1.0f,
-	0.f, 1.f, 1.f, 1.0f,
+	0.f, 1.f, 1.f, 1.f,
+	0.f, 1.f, 1.f, 1.f,
+	0.f, 1.f, 1.f, 1.f,
 
-	0.f, 1.f, 1.f, 1.0f,
-	0.f, 1.f, 1.f, 1.0f,
-	0.f, 1.f, 1.f, 1.0f,
+	0.f, 1.f, 1.f, 1.f,
+	0.f, 1.f, 1.f, 1.f,
+	0.f, 1.f, 1.f, 1.f,
 
-	1.f, 1.f, 1.f, 1.0f,
-	1.f, 1.f, 1.f, 1.0f,
-	1.f, 1.f, 1.f, 1.0f,
+	1.f, 1.f, 1.f, 1.f,
+	1.f, 1.f, 1.f, 1.f,
+	1.f, 1.f, 1.f, 1.f,
 
-	1.f, 1.f, 1.f, 1.0f,
-	1.f, 1.f, 1.f, 1.0f,
-	1.f, 1.f, 1.f, 1.0f
+	1.f, 1.f, 1.f, 1.f,
+	1.f, 1.f, 1.f, 1.f,
+	1.f, 1.f, 1.f, 1.f,
+
+
+	1.f, 1.f,
+	1.f, 0.f,
+	0.f, 1.f,
+
+	0.f, 1.f,
+	1.f, 0.f,
+	0.f, 0.f,
+
+	0.f, 1.f,
+	1.f, 1.f,
+	1.f, 0.f,
+
+	0.f, 1.f,
+	1.f, 0.f,
+	0.f, 0.f,
+
+	0.f, 1.f,
+	1.f, 1.f,
+	1.f, 0.f,
+
+	0.f, 1.f,
+	1.f, 0.f,
+	0.f, 0.f,
+
+	1.f, 1.f,
+	1.f, 0.f,
+	0.f, 1.f,
+
+	0.f, 1.f,
+	1.f, 0.f,
+	0.f, 0.f,
+
+	1.f, 1.f,
+	1.f, 0.f,
+	0.f, 1.f,
+
+	0.f, 1.f,
+	1.f, 0.f,
+	0.f, 0.f,
+
+	0.f, 0.f,
+	0.f, 1.f,
+	1.f, 1.f,
+
+	0.f, 0.f,
+	1.f, 1.f,
+	1.f, 0.f
 };
 
 string load_shader(string const& filename)
@@ -144,10 +199,10 @@ string load_shader(string const& filename)
 	return shader;
 }
 
-GLuint create_shader(GLenum shader_type, string & shader_file)
+unsigned int create_shader(GLenum shader_type, string & shader_file)
 {
 	// create OpenGL shader object
-	GLuint shader{glCreateShader(shader_type)};
+	unsigned int shader{glCreateShader(shader_type)};
 	// shader code as c-style string
 	auto source = shader_file.data();
 	// fed into shader object. Length = NULL implies the strings are null-terminated
@@ -159,7 +214,7 @@ GLuint create_shader(GLenum shader_type, string & shader_file)
     glGetShaderiv(shader, GL_COMPILE_STATUS, &status);
     if (status == GL_FALSE)
     {
-        GLint info_log_length;
+        int info_log_length;
         glGetShaderiv(shader, GL_INFO_LOG_LENGTH, &info_log_length);
 
 		GLchar *str_info_log = new GLchar[info_log_length + 1];
@@ -183,13 +238,13 @@ GLuint create_shader(GLenum shader_type, string & shader_file)
 	return shader;
 }
 
-GLuint create_program(vector<GLuint> const& shaders)
+unsigned int create_program(vector<unsigned int> const& shaders)
 {
 	// create program object and attach shaders
-	GLuint program = glCreateProgram();
+	unsigned int program = glCreateProgram();
 	
 	for_each(shaders.begin(), shaders.end(),
-		[program](GLuint const s)
+		[program](unsigned int const s)
 		{
 			glAttachShader(program, s);
 		});
@@ -198,11 +253,11 @@ GLuint create_program(vector<GLuint> const& shaders)
 	glLinkProgram(program);
 
 	// check if successful
-	GLint status;
+	int status;
     glGetProgramiv (program, GL_LINK_STATUS, &status);
     if (status == GL_FALSE)
     {
-        GLint info_log_length;
+        int info_log_length;
         glGetProgramiv(program, GL_INFO_LOG_LENGTH, &info_log_length);
 
         GLchar *str_info_log = new GLchar[info_log_length + 1];
@@ -213,7 +268,7 @@ GLuint create_program(vector<GLuint> const& shaders)
 
 	// detach shaders from program after linking (resource cleanup)
 	for_each(shaders.begin(), shaders.end(),
-		[program](GLuint const s)
+		[program](unsigned int const s)
 		{
 			glDetachShader(program, s);
 		});
@@ -227,10 +282,10 @@ void init_program()
 	string frag_shader_str{load_shader("data/fragshader.frag")};
 
 	// compile shaders
-	GLuint vert_shader{create_shader(GL_VERTEX_SHADER, vert_shader_str)};
-	GLuint frag_shader{create_shader(GL_FRAGMENT_SHADER, frag_shader_str)};
+	unsigned int vert_shader{create_shader(GL_VERTEX_SHADER, vert_shader_str)};
+	unsigned int frag_shader{create_shader(GL_FRAGMENT_SHADER, frag_shader_str)};
 
-	vector<GLuint> shaders{};
+	vector<unsigned int> shaders{};
 	shaders.push_back(vert_shader);
 	shaders.push_back(frag_shader);
 
@@ -252,6 +307,25 @@ void init_vertex_buffer()
 
 	//clean up resources
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
+}
+
+void init_texture(string const& filepath)
+{
+
+	unsigned char* image{stbi_load(filepath.data(), &image_width, &image_height, &channels, 0)};
+	if(!image)
+	{
+		cout << "Failed loading image" << endl;
+		exit(0);
+	}
+
+	unsigned int texture;
+	glGenTextures(1, &texture);
+	glBindTexture(GL_TEXTURE_2D, texture);
+
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, image_width, image_height, 0, GL_RGB, GL_UNSIGNED_BYTE, image);
+	glGenerateMipmap(GL_TEXTURE_2D);
+	stbi_image_free(image);
 }
 
 glm::mat4 rotation_x_matrix()
@@ -301,17 +375,10 @@ glm::mat4 rotation_z_matrix()
 
 void set_perspective_matrix()
 {
-	glm::mat4 matrix{1.0f};
-	GLfloat frustum_scale{10.0f};
-
-	matrix[0].x = frustum_scale * (screen_height / screen_width);
-	matrix[1].y = frustum_scale;
-	matrix[2].z = (zFar + zNear) / (zNear - zFar);
-	matrix[2].w = -1.0f;
-	matrix[3].z = ((2 * zFar * zNear) / (zNear - zFar));
+	glm::mat4 matrix{glm::perspective(glm::radians(30.0f), screen_width / screen_height, zNear, zFar)};
 
 	glUseProgram(program);
-	GLint perspective_matrix_location{glGetUniformLocation(program, "perspectiveMatrix")};
+	int perspective_matrix_location{glGetUniformLocation(program, "perspectiveMatrix")};
 	glUniformMatrix4fv(perspective_matrix_location, 1, GL_FALSE, glm::value_ptr(matrix));
 	glUseProgram(0);
 }
@@ -331,6 +398,7 @@ void init()
 {
 	init_vertex_buffer();
 	init_program();
+	init_texture("assets/bippi.jpg");
 
 	glGenVertexArrays(1, &vao);
 	glBindVertexArray(vao);
@@ -347,18 +415,21 @@ void display()
 	glUseProgram(program);
 	glm::mat4 matrix{offset_matrix() * rotation_x_matrix() * rotation_y_matrix() * rotation_z_matrix()};
 
-	GLint transform_matrix_location{glGetUniformLocation(program, "transformMatrix")};
+	int transform_matrix_location{glGetUniformLocation(program, "transformMatrix")};
 	glUniformMatrix4fv(transform_matrix_location, 1, GL_FALSE, glm::value_ptr(matrix));
 
 	glBindBuffer(GL_ARRAY_BUFFER, vertex_buffer_obj);
 	glEnableVertexAttribArray(0);
 	glEnableVertexAttribArray(1);
+	glEnableVertexAttribArray(2);
 	glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 0, 0);
-	glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, 0, (void*)(4 * vertex_positions.size() / 2));
-	glDrawArrays(GL_TRIANGLES, 0, vertex_positions.size() / (2*4));
+	glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, 0, (void*)(4 * 4 * 3 * 12));
+	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 0, (void*)(4 * 4 * 3 * 24));
+	glDrawArrays(GL_TRIANGLES, 0, 12 * 3);
 
 	glDisableVertexAttribArray(0);
 	glDisableVertexAttribArray(1);
+	glDisableVertexAttribArray(2);
 	glUseProgram(0);
 }
 

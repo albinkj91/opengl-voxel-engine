@@ -15,7 +15,7 @@ GLFLAGS += -lGL -lX11 -lpthread -lXi -lXrandr -ldl
 # Main objetice - created with 'make' or 'make main'.
 #main: $(OBJECTS) Makefile 
 main: Makefile main.cc
-	$(CCC) $(CCFLAGS) main.cc -o main $(LDFLAGS) $(GLFLAGS)
+	$(CCC) $(CCFLAGS) main.cc stb_image.cc -o main $(LDFLAGS) $(GLFLAGS)
 
 dir:
 	@mkdir -p $(OBJDIR)
