@@ -27,14 +27,15 @@ float screen_width{1.0f};
 float screen_height{1.0f};
 float offset_x{0.0f};
 float offset_y{0.0f};
-float offset_z{0.0f};
+float offset_z{-10.0f};
 
 int image_width{};
 int image_height{};
 int channels{};
 
 glm::vec3 camera_pos{0.f, 0.f, 3.f};
-glm::vec3 camera_target{0.f, 0.f, 0.f};
+glm::vec3 camera_target{0.f, 0.f, -1.f};
+glm::vec3 camera_up{0.f, 1.f, 0.f};
 
 sf::Clock rotation_clock{};
 
@@ -399,7 +400,7 @@ glm::mat4 offset_matrix()
 
 void set_camera_matrix()
 {
-	glm::mat4 matrix{glm::lookAt(camera_pos, camera_target, glm::vec3{0.f, 1.f, 0.f})};
+	glm::mat4 matrix{glm::lookAt(camera_pos, camera_pos + camera_target, camera_up)};
 	glUseProgram(program);
 	int camera_transform_location{glGetUniformLocation(program, "cameraTransform")};
 	glUniformMatrix4fv(camera_transform_location, 1, GL_FALSE, glm::value_ptr(matrix));
@@ -448,13 +449,15 @@ void display()
 
 void handle_keypress()
 {
-	if(sf::Keyboard::isKeyPressed(sf::Keyboard::Left))
+	if(sf::Keyboard::isKeyPressed(sf::Keyboard::A))
 	{
 		//offset_x -= 0.04f * (screen_width / screen_height);
+		camera_pos += 0.10f * glm::normalize(glm::cross(camera_up, camera_target));
 	}
-	else if(sf::Keyboard::isKeyPressed(sf::Keyboard::Right))
+	else if(sf::Keyboard::isKeyPressed(sf::Keyboard::D))
 	{
 		//offset_x += 0.04f * (screen_width / screen_height);
+		camera_pos -= 0.10f * glm::normalize(glm::cross(camera_up, camera_target));
 	}
 	else if(sf::Keyboard::isKeyPressed(sf::Keyboard::Down))
 	{
@@ -467,10 +470,12 @@ void handle_keypress()
 	else if(sf::Keyboard::isKeyPressed(sf::Keyboard::W))
 	{
 		//offset_z -= 0.04f * (zFar / zNear) / 10.0f;
+		camera_pos += 0.10f * camera_target;
 	}
 	else if(sf::Keyboard::isKeyPressed(sf::Keyboard::S))
 	{
 		//offset_z += 0.04f * (zFar / zNear) / 10.0f;
+		camera_pos -= 0.10f * camera_target;
 	}
 }
 
