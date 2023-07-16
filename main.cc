@@ -16,6 +16,8 @@
 
 using namespace std;
 
+const float pi{3.14159f};
+
 unsigned int vao{};
 unsigned int vertex_buffer_obj{};
 unsigned int program{};
@@ -23,21 +25,25 @@ unsigned int program{};
 float zNear{0.5f};
 float zFar{100.0f};
 
-float screen_width{1.0f};
-float screen_height{1.0f};
+float screen_width{};
+float screen_height{};
 float offset_x{0.0f};
 float offset_y{0.0f};
-float offset_z{-10.0f};
+float offset_z{-1.5f};
+
+float yaw{-pi / 2.f};
+float pitch{};
 
 int image_width{};
 int image_height{};
 int channels{};
 
 glm::vec3 camera_pos{0.f, 0.f, 3.f};
-glm::vec3 camera_target{0.f, 0.f, -1.f};
+glm::vec3 camera_direction{0.f, 0.f, -1.f};
 glm::vec3 camera_up{0.f, 1.f, 0.f};
 
-sf::Clock rotation_clock{};
+sf::Vector2i mouse_pos{};
+bool first_mouse{true};
 
 const vector<float> vertex_positions
 {
@@ -332,11 +338,8 @@ void init_texture(string const& filepath)
 	stbi_image_free(image);
 }
 
-glm::mat4 rotation_x_matrix()
+glm::mat4 rotation_x_matrix(float const angle)
 {
-	sf::Time elapsed{rotation_clock.getElapsedTime()};
-	float angle{(fmod(elapsed.asSeconds(), 5.0f) / 5.0f) * (3.14159f * 2.0f)};
-
 	glm::mat4 matrix{1.0f};
 
 	matrix[1].y = cos(angle);
@@ -347,11 +350,8 @@ glm::mat4 rotation_x_matrix()
 	return matrix;
 }
 
-glm::mat4 rotation_y_matrix()
+glm::mat4 rotation_y_matrix(float const angle)
 {
-	sf::Time elapsed{rotation_clock.getElapsedTime()};
-	float angle{(fmod(elapsed.asSeconds(), 5.0f) / 5.0f) * (3.14159f * 2.0f)};
-
 	glm::mat4 matrix{1.0f};
 
 	matrix[0].x = cos(angle);
@@ -362,11 +362,8 @@ glm::mat4 rotation_y_matrix()
 	return matrix;
 }
 
-glm::mat4 rotation_z_matrix()
+glm::mat4 rotation_z_matrix(float const angle)
 {
-	sf::Time elapsed{rotation_clock.getElapsedTime()};
-	float angle{(fmod(elapsed.asSeconds(), 5.0f) / 5.0f) * (3.14159f * 2.0f)};
-
 	glm::mat4 matrix{1.0f};
 
 	matrix[0].x = cos(angle);
@@ -400,7 +397,7 @@ glm::mat4 offset_matrix()
 
 void set_camera_matrix()
 {
-	glm::mat4 matrix{glm::lookAt(camera_pos, camera_pos + camera_target, camera_up)};
+	glm::mat4 matrix{glm::lookAt(camera_pos, camera_pos + camera_direction, camera_up)};
 	glUseProgram(program);
 	int camera_transform_location{glGetUniformLocation(program, "cameraTransform")};
 	glUniformMatrix4fv(camera_transform_location, 1, GL_FALSE, glm::value_ptr(matrix));
@@ -451,32 +448,40 @@ void handle_keypress()
 {
 	if(sf::Keyboard::isKeyPressed(sf::Keyboard::A))
 	{
-		//offset_x -= 0.04f * (screen_width / screen_height);
-		camera_pos += 0.10f * glm::normalize(glm::cross(camera_up, camera_target));
+		camera_pos += 0.30f * glm::normalize(glm::cross(camera_up, camera_direction));
 	}
 	else if(sf::Keyboard::isKeyPressed(sf::Keyboard::D))
 	{
-		//offset_x += 0.04f * (screen_width / screen_height);
-		camera_pos -= 0.10f * glm::normalize(glm::cross(camera_up, camera_target));
-	}
-	else if(sf::Keyboard::isKeyPressed(sf::Keyboard::Down))
-	{
-		//offset_y -= 0.04f * (screen_width / screen_height);
-	}
-	else if(sf::Keyboard::isKeyPressed(sf::Keyboard::Up))
-	{
-		//offset_y += 0.04f * (screen_width / screen_height);
+		camera_pos -= 0.30f * glm::normalize(glm::cross(camera_up, camera_direction));
 	}
 	else if(sf::Keyboard::isKeyPressed(sf::Keyboard::W))
 	{
-		//offset_z -= 0.04f * (zFar / zNear) / 10.0f;
-		camera_pos += 0.10f * camera_target;
+		camera_pos += 0.30f * camera_direction;
 	}
 	else if(sf::Keyboard::isKeyPressed(sf::Keyboard::S))
 	{
-		//offset_z += 0.04f * (zFar / zNear) / 10.0f;
-		camera_pos -= 0.10f * camera_target;
+		camera_pos -= 0.30f * camera_direction;
 	}
+}
+
+void handle_mouse_movement(sf::Vector2i const& new_mouse_pos)
+{
+	if(first_mouse)
+	{
+		mouse_pos = new_mouse_pos;
+		first_mouse = false;
+	}
+
+	sf::Vector2f direction{mouse_pos - new_mouse_pos};
+	direction *= 0.001f;
+	yaw -= direction.x;
+	pitch += direction.y;
+	mouse_pos = new_mouse_pos;
+
+	camera_direction.x = cos(yaw) * cos(pitch);
+	camera_direction.y = sin(pitch);
+	camera_direction.z = sin(yaw) * cos(pitch);
+	camera_direction = glm::normalize(camera_direction);
 }
 
 int main()
@@ -489,17 +494,17 @@ int main()
 	settings.minorVersion = 0;
 
     // create the window
-	sf::Window window(sf::VideoMode(800, 800), "OpenGL", sf::Style::Default, settings);
-
+	sf::Window window{sf::VideoMode(800, 800), "OpenGL", sf::Style::Default, settings};
     window.setVerticalSyncEnabled(true);
+	window.setMouseCursorVisible(false);
+	window.setMouseCursorGrabbed(true);
 
     // activate the window
     window.setActive(true);
 
-	init();
-
     // load resources, initialize the OpenGL states, ...
 	glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
+	init();
 
     // run the main loop
     bool running{true};
@@ -509,7 +514,7 @@ int main()
         sf::Event event;
         while (window.pollEvent(event))
         {
-            if (event.type == sf::Event::Closed)
+			if (event.type == sf::Event::Closed)
             {
                 // end the program
                 running = false;
@@ -520,8 +525,15 @@ int main()
                 glViewport(0, 0, event.size.width, event.size.height);
 				screen_width = event.size.width;
 				screen_height = event.size.height;
+				sf::Mouse::setPosition(
+					sf::Vector2i{
+						static_cast<int>(screen_width / 2),
+						static_cast<int>(screen_height / 2)},
+						window);
             }
         }
+		handle_mouse_movement(
+			sf::Mouse::getPosition(window));
 		handle_keypress();
 
         // clear the buffers
@@ -533,5 +545,4 @@ int main()
         // end the current frame (internally swaps the front and back buffers)
         window.display();
     }
-    return 0;
 }
