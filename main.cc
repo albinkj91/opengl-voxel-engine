@@ -30,6 +30,7 @@ float screen_height{};
 float offset_x{0.0f};
 float offset_y{0.0f};
 float offset_z{-1.5f};
+float sensitivity{0.0005};
 
 float yaw{-pi / 2.f};
 float pitch{};
@@ -41,9 +42,6 @@ int channels{};
 glm::vec3 camera_pos{0.f, 0.f, 3.f};
 glm::vec3 camera_direction{0.f, 0.f, -1.f};
 glm::vec3 camera_up{0.f, 1.f, 0.f};
-
-sf::Vector2i mouse_pos{};
-bool first_mouse{true};
 
 const vector<float> vertex_positions
 {
@@ -464,24 +462,27 @@ void handle_keypress()
 	}
 }
 
-void handle_mouse_movement(sf::Vector2i const& new_mouse_pos)
+void handle_mouse_movement(sf::Window const& window, sf::Vector2i new_mouse_pos)
 {
-	if(first_mouse)
-	{
-		mouse_pos = new_mouse_pos;
-		first_mouse = false;
-	}
+	new_mouse_pos.x -= screen_width / 2;
+	new_mouse_pos.y -= screen_height / 2;
 
-	sf::Vector2f direction{mouse_pos - new_mouse_pos};
-	direction *= 0.001f;
-	yaw -= direction.x;
-	pitch += direction.y;
-	mouse_pos = new_mouse_pos;
+	sf::Vector2f direction{new_mouse_pos};
+
+	direction *= sensitivity;
+	yaw += direction.x;
+	pitch -= direction.y;
 
 	camera_direction.x = cos(yaw) * cos(pitch);
 	camera_direction.y = sin(pitch);
 	camera_direction.z = sin(yaw) * cos(pitch);
 	camera_direction = glm::normalize(camera_direction);
+
+	sf::Mouse::setPosition(
+		sf::Vector2i{
+			static_cast<int>(screen_width / 2),
+			static_cast<int>(screen_height / 2)},
+			window);
 }
 
 int main()
@@ -533,6 +534,7 @@ int main()
             }
         }
 		handle_mouse_movement(
+			window,
 			sf::Mouse::getPosition(window));
 		handle_keypress();
 
