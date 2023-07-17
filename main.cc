@@ -45,9 +45,9 @@ glm::vec3 camera_up{0.f, 1.f, 0.f};
 
 const vector<float> vertex_positions
 {
+	-0.5f, 0.5f, 0.5f, 1.0f,
 	0.5f, 0.5f, 0.5f, 1.0f,
 	0.5f, -0.5f, 0.5f, 1.0f,
-	-0.5f, 0.5f, 0.5f, 1.0f,
 
 	-0.5f, 0.5f, 0.5f, 1.0f,
 	0.5f, -0.5f, 0.5f, 1.0f,
@@ -71,81 +71,40 @@ const vector<float> vertex_positions
 
 	0.5f, 0.5f, 0.5f, 1.0f,
 	0.5f, 0.5f, -0.5f, 1.0f,
-	0.5f, -0.5f, 0.5f, 1.0f,
-
-	0.5f, -0.5f, 0.5f, 1.0f,
-	0.5f, 0.5f, -0.5f, 1.0f,
 	0.5f, -0.5f, -0.5f, 1.0f,
 
 	0.5f, 0.5f, 0.5f, 1.0f,
-	-0.5f, 0.5f, 0.5f, 1.0f,
-	0.5f, 0.5f, -0.5f, 1.0f,
-
-	0.5f, 0.5f, -0.5f, 1.0f,
-	-0.5f, 0.5f, 0.5f, 1.0f,
-	-0.5f, 0.5f, -0.5f, 1.0f,
-
 	0.5f, -0.5f, -0.5f, 1.0f,
-	0.5f, 0.5f, -0.5f, 1.0f,
-	-0.5f, 0.5f, -0.5f, 1.0f,
+	0.5f, -0.5f, 0.5f, 1.0f,
 
-	0.5f, -0.5f, -0.5f, 1.0f,
+	-0.5f, 0.5f, -0.5f, 1.0f,
+	0.5f, 0.5f, -0.5f, 1.0f,
+	0.5f, 0.5f, 0.5f, 1.0f,
+
+	-0.5f, 0.5f, -0.5f, 1.0f,
+	0.5f, 0.5f, 0.5f, 1.0f,
+	-0.5f, 0.5f, 0.5f, 1.0f,
+
+	0.5f, 0.5f, -0.5f, 1.0f,
 	-0.5f, 0.5f, -0.5f, 1.0f,
 	-0.5f, -0.5f, -0.5f, 1.0f,
 
-
-	0.f, 1.f, 0.f, 1.f,
-	0.f, 1.f, 0.f, 1.f,
-	0.f, 1.f, 0.f, 1.f,
-
-	0.f, 1.f, 0.f, 1.f,
-	0.f, 1.f, 0.f, 1.f,
-	0.f, 1.f, 0.f, 1.f,
-
-	1.f, 0.f, 0.f, 1.f,
-	1.f, 0.f, 0.f, 1.f,
-	1.f, 0.f, 0.f, 1.f,
-
-	1.f, 0.f, 0.f, 1.f,
-	1.f, 0.f, 0.f, 1.f,
-	1.f, 0.f, 0.f, 1.f,
-
-	0.f, 0.f, 1.f, 1.f,
-	0.f, 0.f, 1.f, 1.f,
-	0.f, 0.f, 1.f, 1.f,
-
-	0.f, 0.f, 1.f, 1.f,
-	0.f, 0.f, 1.f, 1.f,
-	0.f, 0.f, 1.f, 1.f,
-
-	1.f, 1.f, 0.f, 1.f,
-	1.f, 1.f, 0.f, 1.f,
-	1.f, 1.f, 0.f, 1.f,
-
-	1.f, 1.f, 0.f, 1.f,
-	1.f, 1.f, 0.f, 1.f,
-	1.f, 1.f, 0.f, 1.f,
-
-	0.f, 1.f, 1.f, 1.f,
-	0.f, 1.f, 1.f, 1.f,
-	0.f, 1.f, 1.f, 1.f,
-
-	0.f, 1.f, 1.f, 1.f,
-	0.f, 1.f, 1.f, 1.f,
-	0.f, 1.f, 1.f, 1.f,
-
-	1.f, 1.f, 1.f, 1.f,
-	1.f, 1.f, 1.f, 1.f,
-	1.f, 1.f, 1.f, 1.f,
-
-	1.f, 1.f, 1.f, 1.f,
-	1.f, 1.f, 1.f, 1.f,
-	1.f, 1.f, 1.f, 1.f,
+	0.5f, 0.5f, -0.5f, 1.0f,
+	-0.5f, -0.5f, -0.5f, 1.0f,
+	0.5f, -0.5f, -0.5f, 1.0f,
 
 
+	0.f, 1.f,
 	1.f, 1.f,
 	1.f, 0.f,
+
 	0.f, 1.f,
+	1.f, 0.f,
+	0.f, 0.f,
+
+	0.f, 1.f,
+	1.f, 1.f,
+	1.f, 0.f,
 
 	0.f, 1.f,
 	1.f, 0.f,
@@ -167,29 +126,21 @@ const vector<float> vertex_positions
 	1.f, 0.f,
 	0.f, 0.f,
 
+	0.f, 1.f,
 	1.f, 1.f,
 	1.f, 0.f,
-	0.f, 1.f,
-
-	0.f, 1.f,
-	1.f, 0.f,
-	0.f, 0.f,
-
-	1.f, 1.f,
-	1.f, 0.f,
-	0.f, 1.f,
 
 	0.f, 1.f,
 	1.f, 0.f,
 	0.f, 0.f,
 
-	0.f, 0.f,
 	0.f, 1.f,
 	1.f, 1.f,
+	1.f, 0.f,
 
+	0.f, 1.f,
+	1.f, 0.f,
 	0.f, 0.f,
-	1.f, 1.f,
-	1.f, 0.f
 };
 
 string load_shader(string const& filename)
@@ -331,7 +282,16 @@ void init_texture(string const& filepath)
 	glGenTextures(1, &texture);
 	glBindTexture(GL_TEXTURE_2D, texture);
 
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, image_width, image_height, 0, GL_RGB, GL_UNSIGNED_BYTE, image);
+	glTexImage2D(GL_TEXTURE_2D,
+		0,
+		GL_RGB,
+		image_width,
+		image_height,
+		0,
+		GL_RGB,
+		GL_UNSIGNED_BYTE,
+		image);
+
 	glGenerateMipmap(GL_TEXTURE_2D);
 	stbi_image_free(image);
 }
@@ -430,15 +390,12 @@ void display()
 	glBindBuffer(GL_ARRAY_BUFFER, vertex_buffer_obj);
 	glEnableVertexAttribArray(0);
 	glEnableVertexAttribArray(1);
-	glEnableVertexAttribArray(2);
 	glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 0, 0);
-	glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, 0, (void*)(4 * 4 * 3 * 12));
-	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 0, (void*)(4 * 4 * 3 * 24));
+	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 0, (void*)(4 * 4 * 3 * 12));
 	glDrawArrays(GL_TRIANGLES, 0, 12 * 3);
 
 	glDisableVertexAttribArray(0);
 	glDisableVertexAttribArray(1);
-	glDisableVertexAttribArray(2);
 	glUseProgram(0);
 }
 
