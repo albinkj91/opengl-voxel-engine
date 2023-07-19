@@ -19,15 +19,11 @@ CCFLAGS +=  -Wno-deprecated-declarations -Wall -Wextra -pedantic -std=c++1z -Wef
 LDFLAGS += -L$(SFML_ROOT)/lib -lsfml-graphics -lsfml-window -lsfml-system
 GLFLAGS += -lGL -lX11 -lpthread -lXi -lXrandr -ldl
 
-# file which contains the main function
+# Mainfile
 MAINFILE := main.cc
 
 # Object modules
 OBJECTS =  $(OBJDIR)/main.o  $(OBJDIR)/Camera.o $(OBJDIR)/stb_image.o
-
-# Main objetice - created with 'make' or 'make main'.
-main: $(OBJECTS) Makefile 
-	$(CCC) -I$(IDIR) $(CCFLAGS) -o main $(OBJECTS) $(LDFLAGS) $(GLFLAGS)
 
 # Part objectives
 $(OBJDIR)/main.o:  $(SRC)/main.cc dir
@@ -38,6 +34,10 @@ $(OBJDIR)/Camera.o: $(SRC)/Camera.cc dir
 
 $(OBJDIR)/stb_image.o: $(SRC)/stb_image.cc dir
 	$(CCC) -I$(IDIR) $(CCFLAGS) -c $(SRC)/stb_image.cc -o $(OBJDIR)/stb_image.o
+
+# Main objetice - created with 'make' or 'make main'.
+main: $(OBJECTS) Makefile
+	$(CCC) -I$(IDIR) $(CCFLAGS) -o main $(OBJECTS) $(LDFLAGS) $(GLFLAGS)
 
 dir:
 	@mkdir -p $(OBJDIR)
@@ -50,6 +50,6 @@ clean:
 zap: clean
 	@ \rm -rf main *~
 
-.PHONY:
-run: main
+.PHONY: run
+run:
 	./main
