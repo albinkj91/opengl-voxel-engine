@@ -19,25 +19,26 @@ CCFLAGS +=  -Wno-deprecated-declarations -Wall -Wextra -pedantic -std=c++1z -Wef
 LDFLAGS += -L$(SFML_ROOT)/lib -lsfml-graphics -lsfml-window -lsfml-system
 GLFLAGS += -lGL -lX11 -lpthread -lXi -lXrandr -ldl
 
-# Mainfile
-MAINFILE := main.cc
-
 # Object modules
-OBJECTS =  $(OBJDIR)/main.o  $(OBJDIR)/Camera.o $(OBJDIR)/stb_image.o
-
-# Part objectives
-$(OBJDIR)/main.o:  $(SRC)/main.cc dir
-	$(CCC) -I$(IDIR) $(CCFLAGS) -c $(SRC)/main.cc -o $(OBJDIR)/main.o
-
-$(OBJDIR)/Camera.o: $(SRC)/Camera.cc dir
-	$(CCC) -I$(IDIR) $(CCFLAGS) -c $(SRC)/Camera.cc -o $(OBJDIR)/Camera.o
-
-$(OBJDIR)/stb_image.o: $(SRC)/stb_image.cc dir
-	$(CCC) -I$(IDIR) $(CCFLAGS) -c $(SRC)/stb_image.cc -o $(OBJDIR)/stb_image.o
+OBJECTS = $(OBJDIR)/main.o $(OBJDIR)/Camera.o $(OBJDIR)/stb_image.o
 
 # Main objetice - created with 'make' or 'make main'.
 main: $(OBJECTS) Makefile
 	$(CCC) -I$(IDIR) $(CCFLAGS) -o main $(OBJECTS) $(LDFLAGS) $(GLFLAGS)
+
+# Part objectives
+$(OBJDIR)/main.o:
+	$(CCC) -I$(IDIR) $(CCFLAGS) -c $(SRC)/main.cc -o $(OBJDIR)/main.o
+
+$(OBJDIR)/Camera.o:
+	$(CCC) -I$(IDIR) $(CCFLAGS) -c $(SRC)/Camera.cc -o $(OBJDIR)/Camera.o
+
+$(OBJDIR)/stb_image.o:
+	$(CCC) -I$(IDIR) $(CCFLAGS) -c $(SRC)/stb_image.cc -o $(OBJDIR)/stb_image.o
+
+.PHONY: run dir clean zap
+run: main
+	./main
 
 dir:
 	@mkdir -p $(OBJDIR)
@@ -49,7 +50,3 @@ clean:
 # 'make zap' also removes the executable and backup files.
 zap: clean
 	@ \rm -rf main *~
-
-.PHONY: run
-run:
-	./main
