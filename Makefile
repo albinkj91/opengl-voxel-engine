@@ -2,20 +2,42 @@
 # Makefile
 #
 
+# Folders
+SRC = src
+
+# this is the directory I will compile from (i.e. the argument to -I)
+IDIR := include
+
+# all object files will be put here
+OBJDIR := objdir
+
 # Compiler (g++)
 CCC = g++
 
 # Compiling flags
-CCFLAGS +=  -Wno-deprecated-declarations -Wall -Wextra -pedantic -std=c++17 -Weffc++ -I$(SFML_ROOT)/include
-
+CCFLAGS +=  -Wno-deprecated-declarations -Wall -Wextra -pedantic -std=c++1z -Weffc++ -I$(SFML_ROOT)/include
 LDFLAGS += -L$(SFML_ROOT)/lib -lsfml-graphics -lsfml-window -lsfml-system
-
 GLFLAGS += -lGL -lX11 -lpthread -lXi -lXrandr -ldl
 
+# file which contains the main function
+MAINFILE := main.cc
+
+# Object modules
+OBJECTS =  $(OBJDIR)/main.o  $(OBJDIR)/Camera.o $(OBJDIR)/stb_image.o
+
 # Main objetice - created with 'make' or 'make main'.
-#main: $(OBJECTS) Makefile 
-main: Makefile main.cc
-	$(CCC) $(CCFLAGS) main.cc stb_image.cc -o main $(LDFLAGS) $(GLFLAGS)
+main: $(OBJECTS) Makefile 
+	$(CCC) -I$(IDIR) $(CCFLAGS) -o main $(OBJECTS) $(LDFLAGS) $(GLFLAGS)
+
+# Part objectives
+$(OBJDIR)/main.o:  $(SRC)/main.cc dir
+	$(CCC) -I$(IDIR) $(CCFLAGS) -c $(SRC)/main.cc -o $(OBJDIR)/main.o
+
+$(OBJDIR)/Camera.o: $(SRC)/Camera.cc dir
+	$(CCC) -I$(IDIR) $(CCFLAGS) -c $(SRC)/Camera.cc -o $(OBJDIR)/Camera.o
+
+$(OBJDIR)/stb_image.o: $(SRC)/stb_image.cc dir
+	$(CCC) -I$(IDIR) $(CCFLAGS) -c $(SRC)/stb_image.cc -o $(OBJDIR)/stb_image.o
 
 dir:
 	@mkdir -p $(OBJDIR)
@@ -28,6 +50,6 @@ clean:
 zap: clean
 	@ \rm -rf main *~
 
-.PHONY: run
+.PHONY:
 run: main
 	./main

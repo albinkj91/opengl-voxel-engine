@@ -13,6 +13,7 @@
 #include <glm/gtc/type_ptr.hpp>
 
 #include "stb_image.h"
+#include "Camera.h"
 
 using namespace std;
 
@@ -34,14 +35,17 @@ float sensitivity{0.0005};
 
 float yaw{-pi / 2.f};
 float pitch{};
+float total_pitch{};
 
 int image_width{};
 int image_height{};
 int channels{};
 
-glm::vec3 camera_pos{0.f, 0.f, 3.f};
-glm::vec3 camera_direction{0.f, 0.f, -1.f};
-glm::vec3 camera_up{0.f, 1.f, 0.f};
+Camera camera{
+	glm::vec4{0.f, 0.f, 3.f, 0.f},
+	glm::vec4{0.f, 0.f, -1.f, 0.f},
+	glm::vec4{0.f, 1.f, 0.f, 0.f}
+};
 
 const vector<float> vertex_positions
 {
@@ -151,8 +155,7 @@ string load_shader(string const& filename)
 
 	while(getline(ifs, tmp, '\n'))
 	{
-		shader
-			.append(tmp)
+		shader.append(tmp)
 			.append("\n");
 	}
 	return shader;
@@ -296,29 +299,29 @@ void init_texture(string const& filepath)
 	stbi_image_free(image);
 }
 
-glm::mat4 rotation_x_matrix(float const angle)
-{
-	glm::mat4 matrix{1.0f};
+//glm::mat4 rotation_x_matrix(float const angle)
+//{
+//	glm::mat4 matrix{1.0f};
+//
+//	matrix[1].y = cos(angle);
+//	matrix[1].z = sin(angle);
+//	matrix[2].y = -sin(angle);
+//	matrix[2].z = cos(angle);
+//
+//	return matrix;
+//}
 
-	matrix[1].y = cos(angle);
-	matrix[1].z = sin(angle);
-	matrix[2].y = -sin(angle);
-	matrix[2].z = cos(angle);
-
-	return matrix;
-}
-
-glm::mat4 rotation_y_matrix(float const angle)
-{
-	glm::mat4 matrix{1.0f};
-
-	matrix[0].x = cos(angle);
-	matrix[0].z = -sin(angle);
-	matrix[2].x = sin(angle);
-	matrix[2].z = cos(angle);
-
-	return matrix;
-}
+//glm::mat4 rotation_y_matrix(float const angle)
+//{
+//	glm::mat4 matrix{1.0f};
+//
+//	matrix[0].x = cos(angle);
+//	matrix[0].z = -sin(angle);
+//	matrix[2].x = sin(angle);
+//	matrix[2].z = cos(angle);
+//
+//	return matrix;
+//}
 
 glm::mat4 rotation_z_matrix(float const angle)
 {
@@ -342,7 +345,7 @@ void set_perspective_matrix()
 	glUseProgram(0);
 }
 
-glm::mat4 offset_matrix()
+glm::mat4 translate_matrix()
 {
 	glm::mat4 matrix{1.0f};
 
@@ -353,14 +356,14 @@ glm::mat4 offset_matrix()
 	return matrix;
 }
 
-void set_camera_matrix()
-{
-	glm::mat4 matrix{glm::lookAt(camera_pos, camera_pos + camera_direction, camera_up)};
-	glUseProgram(program);
-	int camera_transform_location{glGetUniformLocation(program, "cameraTransform")};
-	glUniformMatrix4fv(camera_transform_location, 1, GL_FALSE, glm::value_ptr(matrix));
-	glUseProgram(0);
-}
+//void set_camera_matrix()
+//{
+//	glm::mat4 matrix{glm::lookAt(camera_pos, camera_pos + camera_direction, camera_up)};
+//	glUseProgram(program);
+//	int camera_transform_location{glGetUniformLocation(program, "cameraTransform")};
+//	glUniformMatrix4fv(camera_transform_location, 1, GL_FALSE, glm::value_ptr(matrix));
+//	glUseProgram(0);
+//}
 
 void init()
 {
@@ -379,10 +382,10 @@ void init()
 void display()
 {
 	set_perspective_matrix();
-	set_camera_matrix();
+	camera.set_camera_matrix(program);
 
 	glUseProgram(program);
-	glm::mat4 matrix{offset_matrix()};
+	glm::mat4 matrix{translate_matrix()};
 
 	int transform_matrix_location{glGetUniformLocation(program, "transformMatrix")};
 	glUniformMatrix4fv(transform_matrix_location, 1, GL_FALSE, glm::value_ptr(matrix));
@@ -403,19 +406,23 @@ void handle_keypress()
 {
 	if(sf::Keyboard::isKeyPressed(sf::Keyboard::A))
 	{
-		camera_pos += 0.30f * glm::normalize(glm::cross(camera_up, camera_direction));
+		//camera_pos += 0.30f * glm::normalize(glm::cross(camera_up, camera_direction));
+		camera.translate_x(0.33f);
 	}
 	else if(sf::Keyboard::isKeyPressed(sf::Keyboard::D))
 	{
-		camera_pos -= 0.30f * glm::normalize(glm::cross(camera_up, camera_direction));
+		//camera_pos -= 0.30f * glm::normalize(glm::cross(camera_up, camera_direction));
+		camera.translate_x(-0.33f);
 	}
 	else if(sf::Keyboard::isKeyPressed(sf::Keyboard::W))
 	{
-		camera_pos += 0.30f * camera_direction;
+		//camera_pos += 0.30f * camera_direction;
+		camera.translate_z(0.33f);
 	}
 	else if(sf::Keyboard::isKeyPressed(sf::Keyboard::S))
 	{
-		camera_pos -= 0.30f * camera_direction;
+		//camera_pos -= 0.30f * camera_direction;
+		camera.translate_z(-0.33f);
 	}
 }
 
@@ -427,13 +434,23 @@ void handle_mouse_movement(sf::Window const& window, sf::Vector2i new_mouse_pos)
 	sf::Vector2f direction{new_mouse_pos};
 
 	direction *= sensitivity;
-	yaw += direction.x;
-	pitch -= direction.y;
+	yaw = -direction.x;
+	pitch = direction.y;
+	total_pitch += direction.y;
 
-	camera_direction.x = cos(yaw) * cos(pitch);
-	camera_direction.y = sin(pitch);
-	camera_direction.z = sin(yaw) * cos(pitch);
-	camera_direction = glm::normalize(camera_direction);
+	if(total_pitch > pi / 2.f)
+	{
+		pitch = 0.f;
+		total_pitch = pi/2.f;
+	}
+	else if(total_pitch < -(pi / 2.f))
+	{
+		pitch = 0.f;
+		total_pitch = -(pi/2.f);
+	}
+
+	camera.rotate_x(yaw);
+	camera.rotate_y(pitch);
 
 	sf::Mouse::setPosition(
 		sf::Vector2i{
