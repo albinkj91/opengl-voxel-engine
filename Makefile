@@ -27,13 +27,13 @@ main: $(OBJECTS) Makefile
 	$(CCC) -I$(IDIR) $(CCFLAGS) -o main $(OBJECTS) $(LDFLAGS) $(GLFLAGS)
 
 # Part objectives
-$(OBJDIR)/main.o:
+$(OBJDIR)/main.o: $(SRC)/main.cc
 	$(CCC) -I$(IDIR) $(CCFLAGS) -c $(SRC)/main.cc -o $(OBJDIR)/main.o
 
-$(OBJDIR)/Camera.o:
+$(OBJDIR)/Camera.o: $(SRC)/Camera.cc
 	$(CCC) -I$(IDIR) $(CCFLAGS) -c $(SRC)/Camera.cc -o $(OBJDIR)/Camera.o
 
-$(OBJDIR)/stb_image.o:
+$(OBJDIR)/stb_image.o: $(SRC)/stb_image.cc
 	$(CCC) -I$(IDIR) $(CCFLAGS) -c $(SRC)/stb_image.cc -o $(OBJDIR)/stb_image.o
 
 .PHONY: run dir clean zap

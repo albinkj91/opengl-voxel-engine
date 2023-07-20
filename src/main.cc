@@ -20,6 +20,7 @@ using namespace std;
 const float pi{3.14159f};
 
 unsigned int vao{};
+unsigned int eao{};
 unsigned int vertex_buffer_obj{};
 unsigned int program{};
 
@@ -28,9 +29,6 @@ float zFar{100.0f};
 
 float screen_width{};
 float screen_height{};
-float offset_x{0.0f};
-float offset_y{0.0f};
-float offset_z{-1.5f};
 float sensitivity{0.0005};
 
 float yaw{-pi / 2.f};
@@ -41,10 +39,17 @@ int image_width{};
 int image_height{};
 int channels{};
 
+
 Camera camera{
 	glm::vec4{0.f, 0.f, 3.f, 0.f},
 	glm::vec4{0.f, 0.f, -1.f, 0.f},
 	glm::vec4{0.f, 1.f, 0.f, 0.f}
+};
+
+vector<int> indicies
+{
+	0, 1, 2,
+	0, 2, 
 };
 
 const vector<float> vertex_positions
@@ -273,7 +278,6 @@ void init_vertex_buffer()
 
 void init_texture(string const& filepath)
 {
-
 	unsigned char* image{stbi_load(filepath.data(), &image_width, &image_height, &channels, 0)};
 	if(!image)
 	{
@@ -299,30 +303,6 @@ void init_texture(string const& filepath)
 	stbi_image_free(image);
 }
 
-//glm::mat4 rotation_x_matrix(float const angle)
-//{
-//	glm::mat4 matrix{1.0f};
-//
-//	matrix[1].y = cos(angle);
-//	matrix[1].z = sin(angle);
-//	matrix[2].y = -sin(angle);
-//	matrix[2].z = cos(angle);
-//
-//	return matrix;
-//}
-
-//glm::mat4 rotation_y_matrix(float const angle)
-//{
-//	glm::mat4 matrix{1.0f};
-//
-//	matrix[0].x = cos(angle);
-//	matrix[0].z = -sin(angle);
-//	matrix[2].x = sin(angle);
-//	matrix[2].z = cos(angle);
-//
-//	return matrix;
-//}
-
 glm::mat4 rotation_z_matrix(float const angle)
 {
 	glm::mat4 matrix{1.0f};
@@ -345,24 +325,15 @@ void set_perspective_matrix()
 	glUseProgram(0);
 }
 
-glm::mat4 translate_matrix()
-{
-	glm::mat4 matrix{1.0f};
-
-	matrix[3].x = offset_x;
-	matrix[3].y = offset_y;
-	matrix[3].z = offset_z;
-
-	return matrix;
-}
-
-//void set_camera_matrix()
+//glm::mat4 translate_matrix()
 //{
-//	glm::mat4 matrix{glm::lookAt(camera_pos, camera_pos + camera_direction, camera_up)};
-//	glUseProgram(program);
-//	int camera_transform_location{glGetUniformLocation(program, "cameraTransform")};
-//	glUniformMatrix4fv(camera_transform_location, 1, GL_FALSE, glm::value_ptr(matrix));
-//	glUseProgram(0);
+//	glm::mat4 matrix{1.0f};
+//
+//	matrix[3].x = offset_x;
+//	matrix[3].y = offset_y;
+//	matrix[3].z = offset_z;
+//
+//	return matrix;
 //}
 
 void init()
@@ -385,10 +356,10 @@ void display()
 	camera.set_camera_matrix(program);
 
 	glUseProgram(program);
-	glm::mat4 matrix{translate_matrix()};
+	//glm::mat4 matrix{translate_matrix()};
 
-	int transform_matrix_location{glGetUniformLocation(program, "transformMatrix")};
-	glUniformMatrix4fv(transform_matrix_location, 1, GL_FALSE, glm::value_ptr(matrix));
+	//int transform_matrix_location{glGetUniformLocation(program, "transformMatrix")};
+	//glUniformMatrix4fv(transform_matrix_location, 1, GL_FALSE, glm::value_ptr(matrix));
 
 	glBindBuffer(GL_ARRAY_BUFFER, vertex_buffer_obj);
 	glEnableVertexAttribArray(0);
@@ -406,23 +377,27 @@ void handle_keypress()
 {
 	if(sf::Keyboard::isKeyPressed(sf::Keyboard::A))
 	{
-		//camera_pos += 0.30f * glm::normalize(glm::cross(camera_up, camera_direction));
 		camera.translate_x(0.33f);
 	}
 	else if(sf::Keyboard::isKeyPressed(sf::Keyboard::D))
 	{
-		//camera_pos -= 0.30f * glm::normalize(glm::cross(camera_up, camera_direction));
 		camera.translate_x(-0.33f);
 	}
 	else if(sf::Keyboard::isKeyPressed(sf::Keyboard::W))
 	{
-		//camera_pos += 0.30f * camera_direction;
 		camera.translate_z(0.33f);
 	}
 	else if(sf::Keyboard::isKeyPressed(sf::Keyboard::S))
 	{
-		//camera_pos -= 0.30f * camera_direction;
 		camera.translate_z(-0.33f);
+	}
+	else if(sf::Keyboard::isKeyPressed(sf::Keyboard::Num1))
+	{
+		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+	}
+	else if(sf::Keyboard::isKeyPressed(sf::Keyboard::Num2))
+	{
+		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 	}
 }
 

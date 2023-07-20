@@ -24,7 +24,6 @@ void Camera::set_camera_matrix(unsigned int program) const
 	int camera_transform_location{glGetUniformLocation(program, "cameraTransform")};
 
 	glUniformMatrix4fv(camera_transform_location, 1, GL_FALSE, glm::value_ptr(matrix));
-
 	glUseProgram(0);
 }
 
