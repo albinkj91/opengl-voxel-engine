@@ -1,3 +1,6 @@
+#ifndef CAMERA_H
+#define CAMERA_H
+
 #include <glm/mat4x4.hpp>
 
 class Camera
@@ -18,3 +21,5 @@ private:
 	glm::vec4 direction;
 	glm::vec4 up;
 };
+
+#endif

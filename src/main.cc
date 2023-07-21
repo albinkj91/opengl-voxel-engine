@@ -20,8 +20,8 @@ using namespace std;
 const float pi{3.14159f};
 
 unsigned int vao{};
-unsigned int eao{};
-unsigned int vertex_buffer_obj{};
+unsigned int vbo{};
+unsigned int ebo{};
 unsigned int program{};
 
 float zNear{0.5f};
@@ -39,17 +39,31 @@ int image_width{};
 int image_height{};
 int channels{};
 
-
 Camera camera{
 	glm::vec4{0.f, 0.f, 3.f, 0.f},
 	glm::vec4{0.f, 0.f, -1.f, 0.f},
 	glm::vec4{0.f, 1.f, 0.f, 0.f}
 };
 
-vector<int> indicies
+vector<unsigned int> indices
 {
 	0, 1, 2,
-	0, 2, 
+	0, 2, 3,
+
+	4, 0, 3,
+	4, 3, 5,
+
+	3, 2, 6,
+	3, 6, 5,
+
+	1, 7, 6,
+	1, 6, 2,
+
+	4, 7, 1,
+	4, 1, 0,
+
+	7, 4, 5,
+	7, 5, 6
 };
 
 const vector<float> vertex_positions
@@ -57,53 +71,13 @@ const vector<float> vertex_positions
 	-0.5f, 0.5f, 0.5f, 1.0f,
 	0.5f, 0.5f, 0.5f, 1.0f,
 	0.5f, -0.5f, 0.5f, 1.0f,
-
-	-0.5f, 0.5f, 0.5f, 1.0f,
-	0.5f, -0.5f, 0.5f, 1.0f,
 	-0.5f, -0.5f, 0.5f, 1.0f,
-
-	-0.5f, 0.5f, -0.5f, 1.0f,
-	-0.5f, 0.5f, 0.5f, 1.0f,
-	-0.5f, -0.5f, 0.5f, 1.0f,
-
-	-0.5f, 0.5f, -0.5f, 1.0f,
-	-0.5f, -0.5f, 0.5f, 1.0f,
-	-0.5f, -0.5f, -0.5f, 1.0f,
-
-	-0.5f, -0.5f, 0.5f, 1.0f,
-	0.5f, -0.5f, 0.5f, 1.0f,
-	0.5f, -0.5f, -0.5f, 1.0f,
-
-	-0.5f, -0.5f, 0.5f, 1.0f,
-	0.5f, -0.5f, -0.5f, 1.0f,
-	-0.5f, -0.5f, -0.5f, 1.0f,
-
-	0.5f, 0.5f, 0.5f, 1.0f,
-	0.5f, 0.5f, -0.5f, 1.0f,
-	0.5f, -0.5f, -0.5f, 1.0f,
-
-	0.5f, 0.5f, 0.5f, 1.0f,
-	0.5f, -0.5f, -0.5f, 1.0f,
-	0.5f, -0.5f, 0.5f, 1.0f,
-
-	-0.5f, 0.5f, -0.5f, 1.0f,
-	0.5f, 0.5f, -0.5f, 1.0f,
-	0.5f, 0.5f, 0.5f, 1.0f,
-
-	-0.5f, 0.5f, -0.5f, 1.0f,
-	0.5f, 0.5f, 0.5f, 1.0f,
-	-0.5f, 0.5f, 0.5f, 1.0f,
-
-	0.5f, 0.5f, -0.5f, 1.0f,
 	-0.5f, 0.5f, -0.5f, 1.0f,
 	-0.5f, -0.5f, -0.5f, 1.0f,
-
-	0.5f, 0.5f, -0.5f, 1.0f,
-	-0.5f, -0.5f, -0.5f, 1.0f,
 	0.5f, -0.5f, -0.5f, 1.0f,
+	0.5f, 0.5f, -0.5f, 1.0f,
 
-
-	0.f, 1.f,
+/*	0.f, 1.f,
 	1.f, 1.f,
 	1.f, 0.f,
 
@@ -149,7 +123,7 @@ const vector<float> vertex_positions
 
 	0.f, 1.f,
 	1.f, 0.f,
-	0.f, 0.f,
+	0.f, 0.f,*/
 };
 
 string load_shader(string const& filename)
@@ -261,21 +235,6 @@ void init_program()
 	for_each(shaders.begin(), shaders.end(), glDeleteShader);
 }
 
-// allocate memory that OpenGL can "see" (GPU memory)
-void init_vertex_buffer()
-{
-	// generate buffer object and bind to context (OpenGL struct state)
-	glGenBuffers(1, &vertex_buffer_obj);
-	glBindBuffer(GL_ARRAY_BUFFER, vertex_buffer_obj);
-	glBufferData(GL_ARRAY_BUFFER,
-			vertex_positions.size() * sizeof(float),
-			vertex_positions.data(),
-			GL_STATIC_DRAW);
-
-	//clean up resources
-	glBindBuffer(GL_ARRAY_BUFFER, 0);
-}
-
 void init_texture(string const& filepath)
 {
 	unsigned char* image{stbi_load(filepath.data(), &image_width, &image_height, &channels, 0)};
@@ -315,6 +274,16 @@ glm::mat4 rotation_z_matrix(float const angle)
 	return matrix;
 }
 
+glm::mat4 translate_matrix()
+{
+	glm::mat4 matrix{1.0f};
+
+	matrix[3].x = 0.f;
+	matrix[3].y = 0.f;
+	matrix[3].z = -1.5f;
+	return matrix;
+}
+
 void set_perspective_matrix()
 {
 	glm::mat4 matrix{glm::perspective(glm::radians(30.0f), screen_width / screen_height, zNear, zFar)};
@@ -325,25 +294,50 @@ void set_perspective_matrix()
 	glUseProgram(0);
 }
 
-//glm::mat4 translate_matrix()
-//{
-//	glm::mat4 matrix{1.0f};
-//
-//	matrix[3].x = offset_x;
-//	matrix[3].y = offset_y;
-//	matrix[3].z = offset_z;
-//
-//	return matrix;
-//}
+void init_buffers()
+{
+	// generate buffer object and bind to context (OpenGL struct state)
+	glGenBuffers(1, &vbo);
+
+	glBindBuffer(GL_ARRAY_BUFFER, vbo);
+	glBufferData(GL_ARRAY_BUFFER,
+			vertex_positions.size() * sizeof(float),
+			vertex_positions.data(),
+			GL_STATIC_DRAW);
+
+	////clean up resources
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+	glGenBuffers(1, &ebo);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER,
+			indices.size() * sizeof(unsigned int),
+			indices.data(),
+			GL_STATIC_DRAW);
+
+	////clean up resources
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+
+}
 
 void init()
 {
-	init_vertex_buffer();
 	init_program();
-	init_texture("assets/bippi.jpg");
+	init_buffers();
 
 	glGenVertexArrays(1, &vao);
 	glBindVertexArray(vao);
+
+	//init_texture("assets/bippi.jpg");
+	glBindBuffer(GL_ARRAY_BUFFER, vbo);
+	glEnableVertexAttribArray(0);
+	////glEnableVertexAttribArray(1);
+	glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 0, 0);
+	////glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 0, (void*)(4 * 4 * 8));
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
+	//glDisableVertexAttribArray(0);
+
+	glBindVertexArray(0);
 
 	glEnable(GL_CULL_FACE);
 	glCullFace(GL_BACK);
@@ -356,20 +350,17 @@ void display()
 	camera.set_camera_matrix(program);
 
 	glUseProgram(program);
-	//glm::mat4 matrix{translate_matrix()};
+	glBindVertexArray(vao);
 
-	//int transform_matrix_location{glGetUniformLocation(program, "transformMatrix")};
-	//glUniformMatrix4fv(transform_matrix_location, 1, GL_FALSE, glm::value_ptr(matrix));
+	//TODO: rework
+	glm::mat4 matrix{translate_matrix()};
+	int transform_matrix_location{glGetUniformLocation(program, "transformMatrix")};
+	glUniformMatrix4fv(transform_matrix_location, 1, GL_FALSE, glm::value_ptr(matrix));
 
-	glBindBuffer(GL_ARRAY_BUFFER, vertex_buffer_obj);
-	glEnableVertexAttribArray(0);
-	glEnableVertexAttribArray(1);
-	glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 0, 0);
-	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 0, (void*)(4 * 4 * 3 * 12));
-	glDrawArrays(GL_TRIANGLES, 0, 12 * 3);
+	glDrawElements(GL_TRIANGLES, indices.size(), GL_UNSIGNED_INT, 0);
 
-	glDisableVertexAttribArray(0);
-	glDisableVertexAttribArray(1);
+	glBindVertexArray(0);
+	//glDisableVertexAttribArray(1);
 	glUseProgram(0);
 }
 
@@ -453,7 +444,7 @@ int main()
     window.setActive(true);
 
     // load resources, initialize the OpenGL states, ...
-	glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
+	glClearColor(0.2f, 0.2f, 0.4f, 0.0f);
 	init();
 
     // run the main loop

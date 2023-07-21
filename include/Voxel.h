@@ -1,3 +1,6 @@
+#ifndef VOXEL_H
+#define VOXEL_H
+
 #include "Texture.h"
 #include <vector>
 #include <glm/mat4x4.hpp>
@@ -14,3 +17,5 @@ private:
 	float y;
 	int type;
 };
+
+#endif
