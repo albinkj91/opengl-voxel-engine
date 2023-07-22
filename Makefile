@@ -20,7 +20,7 @@ LDFLAGS += -L$(SFML_ROOT)/lib -lsfml-graphics -lsfml-window -lsfml-system
 GLFLAGS += -lGL -lX11 -lpthread -lXi -lXrandr -ldl
 
 # Object modules
-OBJECTS = $(OBJDIR)/main.o $(OBJDIR)/Camera.o $(OBJDIR)/stb_image.o
+OBJECTS =  $(OBJDIR)/main.o $(OBJDIR)/Camera.o $(OBJDIR)/Shader.o $(OBJDIR)/Program.o $(OBJDIR)/stb_image.o
 
 # Main objetice - created with 'make' or 'make main'.
 main: $(OBJECTS) Makefile
@@ -30,10 +30,16 @@ main: $(OBJECTS) Makefile
 $(OBJDIR)/main.o: $(SRC)/main.cc
 	$(CCC) -I$(IDIR) $(CCFLAGS) -c $(SRC)/main.cc -o $(OBJDIR)/main.o
 
-$(OBJDIR)/Camera.o: $(SRC)/Camera.cc
+$(OBJDIR)/Camera.o: $(SRC)/Camera.cc $(IDIR)/Camera.h
 	$(CCC) -I$(IDIR) $(CCFLAGS) -c $(SRC)/Camera.cc -o $(OBJDIR)/Camera.o
 
-$(OBJDIR)/stb_image.o: $(SRC)/stb_image.cc
+$(OBJDIR)/Shader.o: $(SRC)/Shader.cc $(IDIR)/Shader.h
+	$(CCC) -I$(IDIR) $(CCFLAGS) -c $(SRC)/Shader.cc -o $(OBJDIR)/Shader.o
+
+$(OBJDIR)/Program.o: $(SRC)/Program.cc $(IDIR)/Program.h
+	$(CCC) -I$(IDIR) $(CCFLAGS) -c $(SRC)/Program.cc -o $(OBJDIR)/Program.o
+
+$(OBJDIR)/stb_image.o: $(SRC)/stb_image.cc $(IDIR)/stb_image.h
 	$(CCC) -I$(IDIR) $(CCFLAGS) -c $(SRC)/stb_image.cc -o $(OBJDIR)/stb_image.o
 
 .PHONY: run dir clean zap

@@ -14,6 +14,7 @@
 
 #include "stb_image.h"
 #include "Camera.h"
+#include "Program.h"
 
 using namespace std;
 
@@ -22,7 +23,6 @@ const float pi{3.14159f};
 unsigned int vao{};
 unsigned int vbo{};
 unsigned int ebo{};
-unsigned int program{};
 
 float zNear{0.5f};
 float zFar{100.0f};
@@ -38,6 +38,8 @@ float total_pitch{};
 int image_width{};
 int image_height{};
 int channels{};
+
+Program program{};
 
 Camera camera{
 	glm::vec4{0.f, 0.f, 3.f, 0.f},
@@ -145,115 +147,6 @@ const vector<float> vertex_positions
 	0.f, 0.f,
 };
 
-string load_shader(string const& filename)
-{
-	string shader{};
-	string tmp{};
-	ifstream ifs{filename};
-
-	while(getline(ifs, tmp, '\n'))
-	{
-		shader.append(tmp)
-			.append("\n");
-	}
-	return shader;
-}
-
-unsigned int create_shader(GLenum shader_type, string & shader_file)
-{
-	// create OpenGL shader object
-	unsigned int shader{glCreateShader(shader_type)};
-	// shader code as c-style string
-	auto source = shader_file.data();
-	// fed into shader object. Length = NULL implies the strings are null-terminated
-	glShaderSource(shader, 1, &source, NULL);
-	glCompileShader(shader);
-
-	// check if compilation was successful and if not, log error
-	int status;
-    glGetShaderiv(shader, GL_COMPILE_STATUS, &status);
-    if (status == GL_FALSE)
-    {
-        int info_log_length;
-        glGetShaderiv(shader, GL_INFO_LOG_LENGTH, &info_log_length);
-
-		GLchar *str_info_log = new GLchar[info_log_length + 1];
-        glGetShaderInfoLog(shader, info_log_length, NULL, str_info_log);
-
-        string str_shader_type{};
-        switch(shader_type)
-        {
-			case GL_VERTEX_SHADER: str_shader_type = "vertex"; break;
-			case GL_GEOMETRY_SHADER: str_shader_type = "geometry"; break;
-			case GL_FRAGMENT_SHADER: str_shader_type = "fragment"; break;
-        }
-
-        cout << "Compile failure in "
-			 <<  str_shader_type
-			 << " shader:\n"
-			 << str_info_log
-			 << endl;
-		delete[] str_info_log;
-    }
-	return shader;
-}
-
-unsigned int create_program(vector<unsigned int> const& shaders)
-{
-	// create program object and attach shaders
-	unsigned int program = glCreateProgram();
-	
-	for_each(shaders.begin(), shaders.end(),
-		[program](unsigned int const s)
-		{
-			glAttachShader(program, s);
-		});
-
-	// link program
-	glLinkProgram(program);
-
-	// check if successful
-	int status;
-    glGetProgramiv (program, GL_LINK_STATUS, &status);
-    if (status == GL_FALSE)
-    {
-        int info_log_length;
-        glGetProgramiv(program, GL_INFO_LOG_LENGTH, &info_log_length);
-
-        GLchar *str_info_log = new GLchar[info_log_length + 1];
-        glGetProgramInfoLog(program, info_log_length, NULL, str_info_log);
-        cout << "Linker failure: " << str_info_log << endl;
-        delete[] str_info_log;
-    }
-
-	// detach shaders from program after linking (resource cleanup)
-	for_each(shaders.begin(), shaders.end(),
-		[program](unsigned int const s)
-		{
-			glDetachShader(program, s);
-		});
-	return program;
-}
-
-void init_program()
-{
-	// load each string containing each shaders code
-	string vert_shader_str{load_shader("data/vertshader.vert")};
-	string frag_shader_str{load_shader("data/fragshader.frag")};
-
-	// compile shaders
-	unsigned int vert_shader{create_shader(GL_VERTEX_SHADER, vert_shader_str)};
-	unsigned int frag_shader{create_shader(GL_FRAGMENT_SHADER, frag_shader_str)};
-
-	vector<unsigned int> shaders{};
-	shaders.push_back(vert_shader);
-	shaders.push_back(frag_shader);
-
-	// link shaders to program
-	program = create_program(shaders);
-	for_each(shaders.begin(), shaders.end(), glDeleteShader);
-}
-
 void init_texture(string const& filepath)
 {
 	unsigned char* image{stbi_load(filepath.data(), &image_width, &image_height, &channels, 0)};
@@ -307,10 +200,10 @@ void set_perspective_matrix()
 {
 	glm::mat4 matrix{glm::perspective(glm::radians(30.0f), screen_width / screen_height, zNear, zFar)};
 
-	glUseProgram(program);
-	int perspective_matrix_location{glGetUniformLocation(program, "perspectiveMatrix")};
+	program.use();
+	int perspective_matrix_location{glGetUniformLocation(program.get(), "perspectiveMatrix")};
 	glUniformMatrix4fv(perspective_matrix_location, 1, GL_FALSE, glm::value_ptr(matrix));
-	glUseProgram(0);
+	program.clear_use();
 }
 
 void init_vertex_buffer()
@@ -330,7 +223,7 @@ void init_vertex_buffer()
 
 void init()
 {
-	init_program();
+	program.init_program();
 	init_vertex_buffer();
 
 	glGenVertexArrays(1, &vao);
@@ -353,19 +246,19 @@ void init()
 void display()
 {
 	set_perspective_matrix();
-	camera.set_camera_matrix(program);
+	camera.set_camera_matrix(program.get());
 
-	glUseProgram(program);
+	program.use();
 	glBindVertexArray(vao);
 
 	glm::mat4 matrix{translate_matrix()};
-	int transform_matrix_location{glGetUniformLocation(program, "transformMatrix")};
+	int transform_matrix_location{glGetUniformLocation(program.get(), "transformMatrix")};
 	glUniformMatrix4fv(transform_matrix_location, 1, GL_FALSE, glm::value_ptr(matrix));
 
 	glDrawArrays(GL_TRIANGLES, 0, 12 * 3);
 
 	glBindVertexArray(0);
-	glUseProgram(0);
+	program.clear_use();
 }
 
 void handle_keypress()
@@ -451,7 +344,7 @@ int main()
 	glClearColor(0.2f, 0.2f, 0.4f, 0.0f);
 	init();
 
-    // run the main loop
+    //run the main loop
     bool running{true};
     while (running)
     {
