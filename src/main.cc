@@ -4,6 +4,7 @@
 #include <SFML/OpenGL.hpp>
 #include <string>
 #include <vector>
+#include <map>
 #include <fstream>
 #include <iostream>
 #include <memory>
@@ -12,9 +13,10 @@
 #include <glm/mat4x4.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
-#include "stb_image.h"
 #include "Camera.h"
 #include "Program.h"
+#include "Voxel.h"
+#include "Texture.h"
 
 using namespace std;
 
@@ -24,20 +26,19 @@ unsigned int vao{};
 unsigned int vbo{};
 unsigned int ebo{};
 
+unsigned int dirt_grass_texture{};
+unsigned int grass_texture{};
+
 float zNear{0.5f};
-float zFar{100.0f};
+float zFar{1000.0f};
 
 float screen_width{};
 float screen_height{};
-float sensitivity{0.0005};
+float sensitivity{0.0003};
 
 float yaw{-pi / 2.f};
 float pitch{};
 float total_pitch{};
-
-int image_width{};
-int image_height{};
-int channels{};
 
 Program program{};
 
@@ -47,7 +48,10 @@ Camera camera{
 	glm::vec4{0.f, 1.f, 0.f, 0.f}
 };
 
-const vector<float> vertex_positions
+vector<Voxel> voxels{};
+vector<float> vertex_positions{};
+
+const vector<float> voxel_vertices
 {
 	-0.5f, 0.5f, 0.5f, 1.0f,
 	0.5f, 0.5f, 0.5f, 1.0f,
@@ -81,14 +85,6 @@ const vector<float> vertex_positions
 	0.5f, -0.5f, -0.5f, 1.0f,
 	0.5f, -0.5f, 0.5f, 1.0f,
 
-	-0.5f, 0.5f, -0.5f, 1.0f,
-	0.5f, 0.5f, -0.5f, 1.0f,
-	0.5f, 0.5f, 0.5f, 1.0f,
-
-	-0.5f, 0.5f, -0.5f, 1.0f,
-	0.5f, 0.5f, 0.5f, 1.0f,
-	-0.5f, 0.5f, 0.5f, 1.0f,
-
 	0.5f, 0.5f, -0.5f, 1.0f,
 	-0.5f, 0.5f, -0.5f, 1.0f,
 	-0.5f, -0.5f, -0.5f, 1.0f,
@@ -97,82 +93,63 @@ const vector<float> vertex_positions
 	-0.5f, -0.5f, -0.5f, 1.0f,
 	0.5f, -0.5f, -0.5f, 1.0f,
 
+	-0.5f, 0.5f, -0.5f, 1.0f,
+	0.5f, 0.5f, -0.5f, 1.0f,
+	0.5f, 0.5f, 0.5f, 1.0f,
 
-	0.f, 1.f,
-	1.f, 1.f,
-	1.f, 0.f,
+	-0.5f, 0.5f, -0.5f, 1.0f,
+	0.5f, 0.5f, 0.5f, 1.0f,
+	-0.5f, 0.5f, 0.5f, 1.0f,
 
-	0.f, 1.f,
-	1.f, 0.f,
-	0.f, 0.f,
-	
-	0.f, 1.f,
-	1.f, 1.f,
-	1.f, 0.f,
 
-	0.f, 1.f,
-	1.f, 0.f,
-	0.f, 0.f,
+	0.f,  1.0f,
+	1.0f, 1.0f,
+	1.0f, 0.f,
 
-	0.f, 1.f,
-	1.f, 1.f,
-	1.f, 0.f,
+	0.f,  1.0f,
+	1.0f, 0.f,
+	0.f,  0.f,
 
-	0.f, 1.f,
-	1.f, 0.f,
-	0.f, 0.f,
+	0.f,  1.0f,
+	1.0f, 1.0f,
+	1.0f, 0.f,
 
-	0.f, 1.f,
-	1.f, 1.f,
-	1.f, 0.f,
+	0.f,  1.0f,
+	1.0f, 0.f,
+	0.f,  0.f,
 
-	0.f, 1.f,
-	1.f, 0.f,
-	0.f, 0.f,
+	0.f,  1.0f,
+	1.0f, 1.0f,
+	1.0f, 0.f,
 
-	0.f, 1.f,
-	1.f, 1.f,
-	1.f, 0.f,
+	0.f,  1.0f,
+	1.0f, 0.f,
+	0.f,  0.f,
 
-	0.f, 1.f,
-	1.f, 0.f,
-	0.f, 0.f,
+	0.f,  1.0f,
+	1.0f, 1.0f,
+	1.0f, 0.f,
 
-	0.f, 1.f,
-	1.f, 1.f,
-	1.f, 0.f,
+	0.f,  1.0f,
+	1.0f, 0.f,
+	0.f,  0.f,
 
-	0.f, 1.f,
-	1.f, 0.f,
-	0.f, 0.f,
+	0.f,  1.0f,
+	1.0f, 1.0f,
+	1.0f, 0.f,
+
+	0.f,  1.0f,
+	1.0f, 0.f,
+	0.f,  0.f,
+
+	0.f,  1.0f,
+	1.0f, 1.0f,
+	1.0f, 0.f,
+
+	0.f,  1.0f,
+	1.0f, 0.f,
+	0.f,  0.f,
 };
-
-void init_texture(string const& filepath)
-{
-	unsigned char* image{stbi_load(filepath.data(), &image_width, &image_height, &channels, 0)};
-	if(!image)
-	{
-		cout << "Failed loading image" << endl;
-		exit(0);
-	}
-
-	unsigned int texture;
-	glGenTextures(1, &texture);
-	glBindTexture(GL_TEXTURE_2D, texture);
-
-	glTexImage2D(GL_TEXTURE_2D,
-		0,
-		GL_RGB,
-		image_width,
-		image_height,
-		0,
-		GL_RGB,
-		GL_UNSIGNED_BYTE,
-		image);
-
-	glGenerateMipmap(GL_TEXTURE_2D);
-	stbi_image_free(image);
-}
 
 glm::mat4 rotation_z_matrix(float const angle)
 {
@@ -186,13 +163,13 @@ glm::mat4 rotation_z_matrix(float const angle)
 	return matrix;
 }
 
-glm::mat4 translate_matrix()
+glm::mat4 translate_matrix(glm::vec3 const& translate)
 {
 	glm::mat4 matrix{1.0f};
 
-	matrix[3].x = 0.f;
-	matrix[3].y = 0.f;
-	matrix[3].z = -1.5f;
+	matrix[3].x = translate.x;
+	matrix[3].y = translate.y;
+	matrix[3].z = translate.z;
 	return matrix;
 }
 
@@ -208,7 +185,7 @@ void set_perspective_matrix()
 
 void init_vertex_buffer()
 {
-	// generate buffer object and bind to context (OpenGL struct state)
+	//generate buffer object and bind to context (OpenGL struct state)
 	glGenBuffers(1, &vbo);
 
 	glBindBuffer(GL_ARRAY_BUFFER, vbo);
@@ -217,19 +194,45 @@ void init_vertex_buffer()
 			vertex_positions.data(),
 			GL_STATIC_DRAW);
 
-	////clean up resources
+	//clean up resources
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
+}
+
+void init_voxels()
+{
+	for(int i{}; i < 100; ++i)
+	{
+		for(int j{}; j < 100; ++j)
+		{
+			voxels.push_back(Voxel{static_cast<float>(i), 0.f, static_cast<float>(j), Voxel::GRASS});
+		}
+	}
+}
+
+void load_voxels()
+{
+	for(unsigned i{}; i < voxels.size(); ++i)
+	{
+		for(auto vertex : voxel_vertices)
+		{
+			vertex_positions.push_back(vertex);
+		}
+	}
 }
 
 void init()
 {
 	program.init_program();
+	init_voxels();
+	load_voxels();
 	init_vertex_buffer();
 
 	glGenVertexArrays(1, &vao);
 	glBindVertexArray(vao);
 
-	init_texture("assets/bippi.jpg");
+	dirt_grass_texture = Texture::load("assets/dirt-grass.png");
+	grass_texture = Texture::load("assets/grass.png");
+
 	glBindBuffer(GL_ARRAY_BUFFER, vbo);
 	glEnableVertexAttribArray(0);
 	glEnableVertexAttribArray(1);
@@ -241,6 +244,8 @@ void init()
 	glEnable(GL_CULL_FACE);
 	glCullFace(GL_BACK);
 	glFrontFace(GL_CW);
+
+	glEnable(GL_DEPTH_TEST);
 }
 
 void display()
@@ -251,11 +256,28 @@ void display()
 	program.use();
 	glBindVertexArray(vao);
 
-	glm::mat4 matrix{translate_matrix()};
-	int transform_matrix_location{glGetUniformLocation(program.get(), "transformMatrix")};
-	glUniformMatrix4fv(transform_matrix_location, 1, GL_FALSE, glm::value_ptr(matrix));
+	float row{1.f};
+	float column{-1.5f};
 
-	glDrawArrays(GL_TRIANGLES, 0, 12 * 3);
+	for(unsigned i{}; i < voxels.size(); ++i)
+	{
+		glm::mat4 matrix{translate_matrix(glm::vec3{row, 0.f, column})};
+		int transform_matrix_location{glGetUniformLocation(program.get(), "transformMatrix")};
+		glUniformMatrix4fv(transform_matrix_location, 1, GL_FALSE, glm::value_ptr(matrix));
+
+		glBindTexture(GL_TEXTURE_2D, dirt_grass_texture);
+		glDrawArrays(GL_TRIANGLES, 0, 3 * 10);
+
+		glBindTexture(GL_TEXTURE_2D, grass_texture);
+		glDrawArrays(GL_TRIANGLES, 3 * 10, 3 * 2);
+
+		column -= 1.f;
+		if(column < -100.5f)
+		{
+			row += 1.f;
+			column = -1.5f;
+		}
+	}
 
 	glBindVertexArray(0);
 	program.clear_use();
@@ -376,7 +398,7 @@ int main()
 		handle_keypress();
 
         // clear the buffers
-        glClear(GL_COLOR_BUFFER_BIT);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         // draw
 		display();

@@ -6,11 +6,9 @@
 class Texture
 {
 public:
-	Texture(string const& filename);
-
-	unsigned char* load();
+	static unsigned int load(std::string const& filepath);
 private:
-	string filename;
-}
+	Texture();
+};
 
 #endif

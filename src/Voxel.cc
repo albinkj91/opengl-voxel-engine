@@ -1,5 +1,7 @@
+#include "Voxel.h"
+
 using namespace std;
 
-Voxel::Voxel(float const x, float const y, int const type)
-	x{x}, y{y}, type{type}
+Voxel::Voxel(float const x, float const y, float const z, int const type)
+	:x{x}, y{y}, z{z}, type{type}
 { }
