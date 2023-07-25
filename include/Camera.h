@@ -12,6 +12,7 @@ public:
 
 	void set_camera_matrix(unsigned int program) const;
 	void translate_x(float const offset);
+	void translate_y(float const offset);
 	void translate_z(float const offset);
 	void rotate_x(float const angle);
 	void rotate_y(float const angle);

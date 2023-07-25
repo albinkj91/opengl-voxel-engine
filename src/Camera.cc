@@ -32,6 +32,11 @@ void Camera::translate_x(float const offset)
 	position += glm::vec4{offset * glm::normalize(glm::cross(glm::vec3{up}, glm::vec3{direction})), 1.f};
 }
 
+void Camera::translate_y(float const offset)
+{
+	position += glm::vec4{0.f, offset, 0.f, 0.f};
+}
+
 void Camera::translate_z(float const offset)
 {
 	position += offset * direction;

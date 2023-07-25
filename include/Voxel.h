@@ -12,6 +12,9 @@ public:
 
 	static const int GRASS = 0;
 	static const int DIRT = 1;
+	static const int FLOWER = 2;
+
+	glm::vec3 get_position();
 private:
 	float x;
 	float y;
