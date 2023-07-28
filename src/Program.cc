@@ -9,7 +9,7 @@ Program::Program()
 	:program{}, shader{}
 { }
 
-void Program::init_program()
+void Program::init()
 {
 	// load and compile shaders
 	unsigned int vert_shader{shader.load(GL_VERTEX_SHADER, "data/vertshader.vert")};

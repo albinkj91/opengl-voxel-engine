@@ -9,7 +9,7 @@ class Program
 public:
 	Program();
 
-	void init_program();
+	void init();
 	void use() const;
 	void clear_use() const;
 	unsigned int get() const;

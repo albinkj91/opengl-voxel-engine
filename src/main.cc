@@ -20,11 +20,16 @@
 using namespace std;
 
 const float pi{3.14159f};
+const int grid_width{100};
+const int grid_height{100};
 
 unsigned int vao{};
 unsigned int vao_flowers{};
+unsigned int vao_trees{};
+
 unsigned int vbo{};
 unsigned int vbo_flowers{};
+unsigned int vbo_trees{};
 
 unsigned int dirt_grass_texture{};
 unsigned int grass_texture{};
@@ -50,11 +55,13 @@ Camera camera{
 	glm::vec4{0.f, 1.f, 0.f, 0.f}
 };
 
-vector<Voxel> ground_voxels{};
-vector<Voxel> flower_voxels{};
+vector<Voxel> ground{};
+vector<Voxel> flowers{};
+vector<Voxel> trees{};
 
 vector<float> vertex_positions{};
 vector<float> vertex_positions_flowers{};
+vector<float> vertex_positions_trees{};
 
 random_device rd{};
 
@@ -272,6 +279,21 @@ void init_vertex_buffer()
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 }
 
+void init_vertex_buffer_trees()
+{
+	//generate buffer object and bind to context (OpenGL struct state)
+	glGenBuffers(1, &vbo_trees);
+
+	glBindBuffer(GL_ARRAY_BUFFER, vbo_trees);
+	glBufferData(GL_ARRAY_BUFFER,
+			vertex_positions_trees.size() * sizeof(float),
+			vertex_positions_trees.data(),
+			GL_STATIC_DRAW);
+
+	//clean up resources
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+}
+
 void init_vertex_buffer_flowers()
 {
 	//generate buffer object and bind to context (OpenGL struct state)
@@ -287,20 +309,20 @@ void init_vertex_buffer_flowers()
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 }
 
-void init_ground_voxels()
+void create_grid(int const x, int const y)
 {
-	for(int i{}; i < 100; ++i)
+	for(int i{}; i < y; ++i)
 	{
-		for(int j{}; j < 100; ++j)
+		for(int j{}; j < x; ++j)
 		{
-			ground_voxels.push_back(Voxel{static_cast<float>(i), 0.f, static_cast<float>(j), Voxel::GRASS});
+			ground.push_back(Voxel{static_cast<float>(i), 0.f, static_cast<float>(j), Voxel::GRASS});
 		}
 	}
 }
 
-void load_ground_voxels()
+void load_ground()
 {
-	for(unsigned i{}; i < ground_voxels.size(); ++i)
+	for(unsigned i{}; i < ground.size(); ++i)
 	{
 		for(auto vertex : voxel_vertices)
 		{
@@ -309,14 +331,14 @@ void load_ground_voxels()
 	}
 }
 
-void init_flower_voxels()
+void randomize_flowers(int const count, int const distribution)
 {
 	mt19937 gen{rd()};
-	std::uniform_int_distribution<> distrib(1, 100);
+	std::uniform_int_distribution<> distrib(1, distribution);
 
-	for(int i{}; i < 100; ++i)
+	for(int i{}; i < count; ++i)
 	{
-		flower_voxels.push_back(
+		flowers.push_back(
 			Voxel{static_cast<float>(distrib(gen)),
 				1.f,
 				static_cast<float>(distrib(gen)),
@@ -326,7 +348,7 @@ void init_flower_voxels()
 
 void load_flowers()
 {
-	for(unsigned i{}; i < flower_voxels.size(); ++i)
+	for(unsigned i{}; i < flowers.size(); ++i)
 	{
 		for(unsigned j{}; j < flower_vertices.size(); ++j)
 		{
@@ -335,15 +357,48 @@ void load_flowers()
 	}
 }
 
+void randomize_trees(int const count, int const distribution)
+{
+	mt19937 gen{rd()};
+	std::uniform_int_distribution<> distrib(1, distribution);
+
+	for(int i{}; i < count; ++i)
+	{
+		trees.push_back(
+			Voxel{static_cast<float>(distrib(gen)),
+				1.f,
+				static_cast<float>(distrib(gen)),
+				Voxel::TREE});
+	}
+}
+
+void load_trees()
+{
+	for(unsigned i{}; i < trees.size(); ++i)
+	{
+		for(int j{}; j < 13; ++j)
+		{
+			for(unsigned k{}; k < voxel_vertices.size(); ++k)
+			{
+				vertex_positions_trees.push_back(voxel_vertices.at(k));
+			}
+
+		}
+	}
+}
+
 void init()
 {
-	program.init_program();
-	init_ground_voxels();
-	load_ground_voxels();
-	init_flower_voxels();
+	program.init();
+	create_grid(grid_width, grid_height);
+	load_ground();
+	randomize_flowers(100, 100);
 	load_flowers();
+	randomize_trees(20, 100);
+	load_trees();
 	init_vertex_buffer();
 	init_vertex_buffer_flowers();
+	init_vertex_buffer_trees();
 
 	glGenVertexArrays(1, &vao);
 	glBindVertexArray(vao);
@@ -368,6 +423,15 @@ void init()
 	glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 0, 0);
 	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 0, (void*)(4 * 4 * 3 * 8));
 
+	glGenVertexArrays(1, &vao_trees);
+	glBindVertexArray(vao_trees);
+
+	glBindBuffer(GL_ARRAY_BUFFER, vbo_trees);
+	glEnableVertexAttribArray(0);
+	glEnableVertexAttribArray(1);
+	glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 0, 0);
+	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 0, (void*)(4 * 4 * 3 * 12));
+
 	glBindVertexArray(0);
 
 	glEnable(GL_CULL_FACE);
@@ -388,7 +452,7 @@ void display()
 	float row{1.f};
 	float column{-1.5f};
 
-	for(unsigned i{}; i < ground_voxels.size(); ++i)
+	for(unsigned i{}; i < ground.size(); ++i)
 	{
 		glm::mat4 matrix{translate_matrix(glm::vec3{row, 0.f, column})};
 		int transform_matrix_location{glGetUniformLocation(program.get(), "transformMatrix")};
@@ -404,7 +468,7 @@ void display()
 		glDrawArrays(GL_TRIANGLES, 3 * 10, 3 * 2);
 
 		column -= 1.f;
-		if(column < -100.5f)
+		if(column < -grid_width - 0.5f)
 		{
 			row += 1.f;
 			column = -1.5f;
@@ -413,15 +477,78 @@ void display()
 
 	glBindVertexArray(vao_flowers);
 
-	for(auto flower : flower_voxels)
+	for(auto flower : flowers)
 	{
 		glm::vec3 pos{flower.get_position()};
-		glm::mat4 matrix{translate_matrix(glm::vec3{pos.x, pos.y, -pos.z})};
+		glm::mat4 matrix{translate_matrix(glm::vec3{pos.x, pos.y, -pos.z - 0.5f})};
 		int transform_matrix_location{glGetUniformLocation(program.get(), "transformMatrix")};
 		glUniformMatrix4fv(transform_matrix_location, 1, GL_FALSE, glm::value_ptr(matrix));
 
 		glBindTexture(GL_TEXTURE_2D, flower_texture);
 		glDrawArrays(GL_TRIANGLES, 0, 3 * 8);
+	}
+
+	glBindVertexArray(vao_trees);
+
+	for(auto tree : trees)
+	{
+		glm::vec3 pos{tree.get_position()};
+		glBindTexture(GL_TEXTURE_2D, dirt_texture);
+		for(int i{}; i < 4; ++i)
+		{
+			glm::mat4 matrix{translate_matrix(glm::vec3{pos.x, pos.y + i, -pos.z - 0.5f})};
+			int transform_matrix_location{glGetUniformLocation(program.get(), "transformMatrix")};
+			glUniformMatrix4fv(transform_matrix_location, 1, GL_FALSE, glm::value_ptr(matrix));
+			glDrawArrays(GL_TRIANGLES, 0, 3 * 12);
+		}
+
+		glm::mat4 matrix{translate_matrix(glm::vec3{pos.x, pos.y + 4, -pos.z - 0.5f})};
+		int transform_matrix_location{glGetUniformLocation(program.get(), "transformMatrix")};
+		glUniformMatrix4fv(transform_matrix_location, 1, GL_FALSE, glm::value_ptr(matrix));
+
+		glBindTexture(GL_TEXTURE_2D, grass_texture);
+		glDrawArrays(GL_TRIANGLES, 0, 3 * 12);
+
+		//crown starts
+		matrix = translate_matrix(glm::vec3{pos.x + 1, pos.y + 3, -pos.z - 1 - 0.5f});
+		transform_matrix_location = glGetUniformLocation(program.get(), "transformMatrix");
+		glUniformMatrix4fv(transform_matrix_location, 1, GL_FALSE, glm::value_ptr(matrix));
+		glDrawArrays(GL_TRIANGLES, 0, 3 * 12);
+
+		matrix = translate_matrix(glm::vec3{pos.x + 1, pos.y + 3, -pos.z - 0.5f});
+		transform_matrix_location = glGetUniformLocation(program.get(), "transformMatrix");
+		glUniformMatrix4fv(transform_matrix_location, 1, GL_FALSE, glm::value_ptr(matrix));
+		glDrawArrays(GL_TRIANGLES, 0, 3 * 12);
+
+		matrix = translate_matrix(glm::vec3{pos.x + 1, pos.y + 3, -pos.z + 1 - 0.5f});
+		transform_matrix_location = glGetUniformLocation(program.get(), "transformMatrix");
+		glUniformMatrix4fv(transform_matrix_location, 1, GL_FALSE, glm::value_ptr(matrix));
+		glDrawArrays(GL_TRIANGLES, 0, 3 * 12);
+
+		matrix = translate_matrix(glm::vec3{pos.x, pos.y + 3, -pos.z - 1 - 0.5f});
+		transform_matrix_location = glGetUniformLocation(program.get(), "transformMatrix");
+		glUniformMatrix4fv(transform_matrix_location, 1, GL_FALSE, glm::value_ptr(matrix));
+		glDrawArrays(GL_TRIANGLES, 0, 3 * 12);
+
+		matrix = translate_matrix(glm::vec3{pos.x, pos.y + 3, -pos.z + 1 - 0.5f});
+		transform_matrix_location = glGetUniformLocation(program.get(), "transformMatrix");
+		glUniformMatrix4fv(transform_matrix_location, 1, GL_FALSE, glm::value_ptr(matrix));
+		glDrawArrays(GL_TRIANGLES, 0, 3 * 12);
+
+		matrix = translate_matrix(glm::vec3{pos.x - 1, pos.y + 3, -pos.z - 1 - 0.5f});
+		transform_matrix_location = glGetUniformLocation(program.get(), "transformMatrix");
+		glUniformMatrix4fv(transform_matrix_location, 1, GL_FALSE, glm::value_ptr(matrix));
+		glDrawArrays(GL_TRIANGLES, 0, 3 * 12);
+
+		matrix = translate_matrix(glm::vec3{pos.x - 1, pos.y + 3, -pos.z - 0.5f});
+		transform_matrix_location = glGetUniformLocation(program.get(), "transformMatrix");
+		glUniformMatrix4fv(transform_matrix_location, 1, GL_FALSE, glm::value_ptr(matrix));
+		glDrawArrays(GL_TRIANGLES, 0, 3 * 12);
+
+		matrix = translate_matrix(glm::vec3{pos.x - 1, pos.y + 3, -pos.z + 1 - 0.5f});
+		transform_matrix_location = glGetUniformLocation(program.get(), "transformMatrix");
+		glUniformMatrix4fv(transform_matrix_location, 1, GL_FALSE, glm::value_ptr(matrix));
+		glDrawArrays(GL_TRIANGLES, 0, 3 * 12);
 	}
 
 	glBindVertexArray(0);
@@ -516,7 +643,7 @@ int main()
     window.setActive(true);
 
     // load resources, initialize the OpenGL states, ...
-	glClearColor(0.2f, 0.2f, 0.4f, 0.0f);
+	glClearColor(0.29f, 0.72f, 0.98f, 1);
 	init();
 
     //run the main loop
