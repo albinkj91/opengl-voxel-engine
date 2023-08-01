@@ -3,24 +3,23 @@
 
 #include "Texture.h"
 #include <vector>
-#include <glm/mat4x4.hpp>
+#include <glm/vec3.hpp>
 
 class Voxel
 {
 public:
-	Voxel(float const x, float const y, float const z, int const type);
-
-	static const int GRASS = 0;
-	static const int DIRT = 1;
-	static const int FLOWER = 2;
-	static const int TREE = 3;
+	Voxel(glm::vec3 pos);
+	virtual ~Voxel() = default;
 
 	glm::vec3 get_position();
+	virtual void render() const = 0;
+
+	static const unsigned int GRASS = 0;
+	static const unsigned int DIRT = 1;
+	static const unsigned int FLOWER = 2;
+	static const unsigned int TREE = 3;
 private:
-	float x;
-	float y;
-	float z;
-	int type;
+	glm::vec3 position;
 };
 
 #endif

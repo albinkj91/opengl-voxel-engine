@@ -2,11 +2,11 @@
 
 using namespace std;
 
-Voxel::Voxel(float const x, float const y, float const z, int const type)
-	:x{x}, y{y}, z{z}, type{type}
+Voxel::Voxel(glm::vec3 pos)
+	:position{pos}
 { }
 
 glm::vec3 Voxel::get_position()
 {
-	return glm::vec3{x, y, z};
+	return position;
 }
