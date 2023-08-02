@@ -16,6 +16,7 @@
 using namespace std;
 
 const float pi{3.14159f};
+
 const int grid_width{100};
 const int grid_height{100};
 
@@ -135,28 +136,17 @@ void set_perspective_matrix()
 	program.clear_use();
 }
 
-//TODO: Implement with Chunk class
-//void create_grid(int const x, int const y)
-//{
-//	for(int i{}; i < y; ++i)
-//	{
-//		for(int j{}; j < x; ++j)
-//		{
-//			ground.push_back(Voxel{static_cast<float>(i), 0.f, static_cast<float>(j), Voxel::GRASS});
-//		}
-//	}
-//}
-
-//void load_ground()
-//{
-//	for(unsigned i{}; i < ground.size(); ++i)
-//	{
-//		for(auto vertex : voxel_vertices)
-//		{
-//			vertex_positions.push_back(vertex);
-//		}
-//	}
-//}
+void create_ground(int const width, int const height)
+{
+	for(int i{}; i < height; ++i)
+	{
+		for(int j{}; j < width; ++j)
+		{
+			ground.create_voxel(Voxel_Type::grass,
+					glm::vec3{static_cast<float>(i), 0.f, static_cast<float>(j)});
+		}
+	}
+}
 
 //void randomize_flowers(int const count, int const distribution)
 //{
@@ -217,8 +207,7 @@ void init()
 {
 	program.init();
 	ground.init_vao();
-	ground.create_voxel(Voxel_Type::grass, glm::vec3{1.f, 0.f, 2.f});
-	ground.create_voxel(Voxel_Type::grass, glm::vec3{1.f, 0.f, 4.f});
+	create_ground(grid_width, grid_height);
 	ground.load_vertices();
 	ground.init_vbo();
 
