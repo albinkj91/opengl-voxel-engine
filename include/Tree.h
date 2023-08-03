@@ -8,14 +8,14 @@ class Tree : public Voxel
 public:
 	Tree(glm::vec3 const& position,
 		Program const& program,
-		unsigned const int height,
-		unsigned const int tx_leaves,
-		unsigned const int tx_bark,
-		unsigned const int tx_rings);
+		int const height,
+		unsigned int const tx_leaves,
+		unsigned int const tx_bark,
+		unsigned int const tx_rings);
 
 	void render() const override;
 private:
-	unsigned int height;
+	int height;
 	unsigned int texture_leaves;
 	unsigned int texture_bark;
 	unsigned int texture_rings;

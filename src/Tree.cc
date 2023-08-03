@@ -9,7 +9,7 @@
 
 Tree::Tree(glm::vec3 const& position,
 		Program const& program,
-		unsigned int const height,
+		int const height,
 		unsigned int const tx_leaves,
 		unsigned int const tx_bark,
 		unsigned int const tx_rings)
@@ -39,7 +39,7 @@ void Tree::render() const
 
 void Tree::draw_trunk() const
 {
-	for(unsigned int i{}; i < height; ++i)
+	for(int i{}; i < height; ++i)
 	{
 		glm::mat4 matrix{
 			glm::translate(glm::mat4{1.f}, glm::vec3{position.x, position.y + i, -position.z - 0.5f})};

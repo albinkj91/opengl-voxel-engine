@@ -1,8 +1,6 @@
 #define GL_GLEXT_PROTOTYPES
 
 #include "Chunk.h"
-#include "Grass.h"
-#include "Tree.h"
 #include <SFML/OpenGL.hpp>
 #include <algorithm>
 #include <iostream>
@@ -49,35 +47,36 @@ void Chunk::init_vbo()
     glBindBuffer(GL_ARRAY_BUFFER, 0);
 }
 
-void Chunk::create(Voxel_Type const type, glm::vec3 const& pos, Program const& program)
+void Chunk::add(unique_ptr<Voxel> voxel)
 {
-	switch(type)
-	{
-		case Voxel_Type::grass:
-			voxels.push_back(make_unique<Grass>(Grass{
-				pos,
-				program,
-				Texture::load("assets/grass.png"),
-				Texture::load("assets/dirt-grass.png"),
-				Texture::load("assets/dirt.png")}));
-			break;
-		case Voxel_Type::dirt:
-			break;
-		case Voxel_Type::flower:
-			break;
-		case Voxel_Type::tree:
-			voxels.push_back(make_unique<Tree>(Tree{
-				pos,
-				program,
-				5,
-				Texture::load("assets/grass.png"),
-				Texture::load("assets/dirt.png"),
-				Texture::load("assets/dirt.png")}));
-			break;
-		default:
-			cout << "No matching voxel type." << endl;
-			break;
-	}
+	voxels.push_back(move(voxel));
+	//switch(type)
+	//{
+	//	case Voxel_Type::grass:
+	//		voxels.push_back(make_unique<Grass>(Grass{
+	//			pos,
+	//			program,
+	//			Texture::load("assets/grass.png"),
+	//			Texture::load("assets/dirt-grass.png"),
+	//			Texture::load("assets/dirt.png")}));
+	//		break;
+	//	case Voxel_Type::dirt:
+	//		break;
+	//	case Voxel_Type::flower:
+	//		break;
+	//	case Voxel_Type::tree:
+	//		voxels.push_back(make_unique<Tree>(Tree{
+	//			pos,
+	//			program,
+	//			5,
+	//			Texture::load("assets/grass.png"),
+	//			Texture::load("assets/dirt.png"),
+	//			Texture::load("assets/dirt.png")}));
+	//		break;
+	//	default:
+	//		cout << "No matching voxel type." << endl;
+	//		break;
+	//}
 }
 
 unsigned int Chunk::size() const

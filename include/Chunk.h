@@ -15,7 +15,7 @@ public:
 	void render();
 	void init_vao();
 	void init_vbo();
-	void create(Voxel_Type const type, glm::vec3 const& pos, Program const& program);
+	void add(std::unique_ptr<Voxel> voxel);
 	unsigned int size() const;
 private:
 	std::vector<std::unique_ptr<Voxel>> voxels;

@@ -11,6 +11,8 @@
 #include "Camera.h"
 #include "Program.h"
 #include "Chunk.h"
+#include "Grass.h"
+#include "Tree.h"
 #include "Texture.h"
 
 using namespace std;
@@ -21,7 +23,8 @@ const int grid_width{100};
 const int grid_height{100};
 
 const int tree_count{20};
-const int tree_distibution{100};
+const float tree_distribution{100.f};
+const int tree_height_variance{20};
 
 float zNear{0.5f};
 float zFar{1000.0f};
@@ -35,7 +38,9 @@ float pitch{};
 float total_pitch{};
 
 Program program{};
-random_device rd{};
+random_device random_device_tree_placement{};
+random_device rd_tree_placement{};
+random_device rd_tree_height{};
 
 Camera camera{
 	glm::vec4{0.f, 0.f, 3.f, 0.f},
@@ -228,27 +233,36 @@ void create_ground(int const width, int const height)
 	{
 		for(int j{}; j < width; ++j)
 		{
-			ground.create(Voxel_Type::grass,
+			ground.add(make_unique<Grass>(Grass{
 					glm::vec3{static_cast<float>(i), 0.f, static_cast<float>(j)},
-					program);
+					program,
+					Texture::load("assets/grass.png"),
+					Texture::load("assets/dirt-grass.png"),
+					Texture::load("assets/dirt.png")}));
 		}
 	}
 }
 
-//void create_trees(int const count, int const distribution)
-//{
-//	mt19937 gen{rd()};
-//	std::uniform_int_distribution<> distrib(1, distribution);
-//
-//	for(int i{}; i < count; ++i)
-//	{
-//		trees.push_back(
-//			Voxel{static_cast<float>(distrib(gen)),
-//				1.f,
-//				static_cast<float>(distrib(gen)),
-//				Voxel::TREE});
-//	}
-//}
+void create_trees(int const count, float const distribution, int const height)
+{
+	mt19937 gen_placement{rd_tree_placement()};
+	mt19937 gen_height{rd_tree_height()};
+	std::uniform_real_distribution<> distrib_placement(1.f, distribution);
+	std::uniform_int_distribution<> distrib_height(5, height);
+
+	for(int i{}; i < count; ++i)
+	{
+		trees.add(make_unique<Tree>(
+			Tree{glm::vec3{floor(distrib_placement(gen_placement)),
+				1.f,
+				floor(distrib_placement(gen_placement))},
+				program,
+				distrib_height(gen_height),
+				Texture::load("assets/grass.png"),
+				Texture::load("assets/dirt.png"),
+				Texture::load("assets/dirt.png")}));
+	}
+}
 
 //void randomize_flowers(int const count, int const distribution)
 //{
@@ -283,33 +297,12 @@ void init()
 	create_ground(grid_width, grid_height);
 	ground.init_vbo();
 
+	create_trees(tree_count, tree_distribution, tree_height_variance);
 	trees.init_vao();
-	trees.create(Voxel_Type::tree, glm::vec3{50.f, 1.f, 50.f}, program);
 	trees.init_vbo();
 
 	//randomize_flowers(100, 100);
 	//load_flowers();
-	//randomize_trees(20, 100);
-	//load_trees();
-
-	//glGenVertexArrays(1, &vao_flowers);
-	//glBindVertexArray(vao_flowers);
-	//flower_texture = Texture::load("assets/flower.png");
-
-	//glBindBuffer(GL_ARRAY_BUFFER, vbo_flowers);
-	//glEnableVertexAttribArray(0);
-	//glEnableVertexAttribArray(1);
-	//glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 0, 0);
-	//glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 0, (void*)(4 * 4 * 3 * 8));
-
-	//glGenVertexArrays(1, &vao_trees);
-	//glBindVertexArray(vao_trees);
-
-	//glBindBuffer(GL_ARRAY_BUFFER, vbo_trees);
-	//glEnableVertexAttribArray(0);
-	//glEnableVertexAttribArray(1);
-	//glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 0, 0);
-	//glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 0, (void*)(4 * 4 * 3 * 12));
 
 	glBindVertexArray(0);
 
