@@ -3,7 +3,6 @@
 
 #include "Voxel.h"
 #include "Voxel_Type.h"
-#include "Program.h"
 #include <vector>
 #include <memory>
 #include <glm/mat4x4.hpp>
@@ -11,13 +10,12 @@
 class Chunk
 {
 public:
-	Chunk();
+	Chunk(std::vector<float> const& vertices);
 
-	void render(Program const& program);
+	void render();
 	void init_vao();
 	void init_vbo();
-	void load_vertices();
-	void create_voxel(Voxel_Type const type, glm::vec3 const& pos);
+	void create(Voxel_Type const type, glm::vec3 const& pos, Program const& program);
 	unsigned int size() const;
 private:
 	std::vector<std::unique_ptr<Voxel>> voxels;
@@ -27,7 +25,6 @@ private:
 
 	void bind() const;
 	void unbind() const;
-	glm::mat4 translate_matrix(glm::vec3 const& translate);
 };
 
 #endif

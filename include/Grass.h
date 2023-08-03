@@ -6,7 +6,8 @@
 class Grass : public Voxel
 {
 public:
-	Grass(glm::vec3 pos,
+	Grass(glm::vec3 const& position,
+		Program const& program,
 		unsigned const int tx_top,
 		unsigned const int tx_sides,
 		unsigned const int tx_bottom);

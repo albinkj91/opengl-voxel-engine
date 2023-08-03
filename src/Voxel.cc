@@ -2,8 +2,8 @@
 
 using namespace std;
 
-Voxel::Voxel(glm::vec3 pos)
-	:position{pos}
+Voxel::Voxel(glm::vec3 const& position, Program const& program)
+	:position{position}, program{program}
 { }
 
 glm::vec3 Voxel::get_position()

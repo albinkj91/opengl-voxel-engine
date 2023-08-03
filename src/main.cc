@@ -20,10 +20,8 @@ const float pi{3.14159f};
 const int grid_width{100};
 const int grid_height{100};
 
-unsigned int dirt_grass_texture{};
-unsigned int grass_texture{};
-unsigned int dirt_texture{};
-unsigned int flower_texture{};
+const int tree_count{20};
+const int tree_distibution{100};
 
 float zNear{0.5f};
 float zFar{1000.0f};
@@ -37,7 +35,6 @@ float pitch{};
 float total_pitch{};
 
 Program program{};
-Chunk ground{};
 random_device rd{};
 
 Camera camera{
@@ -46,6 +43,104 @@ Camera camera{
 	glm::vec4{0.f, 1.f, 0.f, 0.f}
 };
 
+vector<float> voxel_vertices
+{
+    -0.5f, 0.5f, 0.5f, 1.f,
+    0.5f, 0.5f, 0.5f, 1.f,
+    0.5f, -0.5f, 0.5f, 1.f,
+
+    -0.5f, 0.5f, 0.5f, 1.f,
+    0.5f, -0.5f, 0.5f, 1.f,
+    -0.5f, -0.5f, 0.5f, 1.f,
+
+    -0.5f, 0.5f, -0.5f, 1.f,
+    -0.5f, 0.5f, 0.5f, 1.f,
+    -0.5f, -0.5f, 0.5f, 1.f,
+
+    -0.5f, 0.5f, -0.5f, 1.f,
+    -0.5f, -0.5f, 0.5f, 1.f,
+    -0.5f, -0.5f, -0.5f, 1.f,
+
+    0.5f, 0.5f, 0.5f, 1.f,
+    0.5f, 0.5f, -0.5f, 1.f,
+    0.5f, -0.5f, -0.5f, 1.f,
+
+    0.5f, 0.5f, 0.5f, 1.f,
+    0.5f, -0.5f, -0.5f, 1.f,
+    0.5f, -0.5f, 0.5f, 1.f,
+
+    0.5f, 0.5f, -0.5f, 1.f,
+    -0.5f, 0.5f, -0.5f, 1.f,
+    -0.5f, -0.5f, -0.5f, 1.f,
+
+    0.5f, 0.5f, -0.5f, 1.f,
+    -0.5f, -0.5f, -0.5f, 1.f,
+    0.5f, -0.5f, -0.5f, 1.f,
+
+    -0.5f, -0.5f, 0.5f, 1.f,
+    0.5f, -0.5f, 0.5f, 1.f,
+    0.5f, -0.5f, -0.5f, 1.f,
+
+    -0.5f, -0.5f, 0.5f, 1.f,
+    0.5f, -0.5f, -0.5f, 1.f,
+    -0.5f, -0.5f, -0.5f, 1.f,
+
+    -0.5f, 0.5f, -0.5f, 1.f,
+    0.5f, 0.5f, -0.5f, 1.f,
+    0.5f, 0.5f, 0.5f, 1.f,
+
+    -0.5f, 0.5f, -0.5f, 1.f,
+    0.5f, 0.5f, 0.5f, 1.f,
+    -0.5f, 0.5f, 0.5f, 1.f,
+
+    0.f,  1.f,
+    1.f, 1.f,
+    1.f, 0.f,
+
+    0.f,  1.f,
+    1.f, 0.f,
+    0.f,  0.f,
+
+    0.f,  1.f,
+    1.f, 1.f,
+    1.f, 0.f,
+
+    0.f,  1.f,
+    1.f, 0.f,
+    0.f,  0.f,
+
+    0.f,  1.f,
+    1.f, 1.f,
+    1.f, 0.f,
+
+    0.f,  1.f,
+    1.f, 0.f,
+    0.f,  0.f,
+
+    0.f,  1.f,
+    1.f, 1.f,
+    1.f, 0.f,
+
+    0.f,  1.f,
+    1.f, 0.f,
+    0.f,  0.f,
+
+    0.f,  1.f,
+    1.f, 1.f,
+    1.f, 0.f,
+
+    0.f,  1.f,
+    1.f, 0.f,
+    0.f,  0.f,
+
+    0.f,  1.f,
+    1.f, 1.f,
+    1.f, 0.f,
+
+    0.f,  1.f,
+    1.f, 0.f,
+    0.f,  0.f
+};
 
 const vector<float> flower_vertices
 {
@@ -114,17 +209,8 @@ const vector<float> flower_vertices
 	0.f,  0.f,
 };
 
-glm::mat4 rotation_z_matrix(float const angle)
-{
-	glm::mat4 matrix{1.f};
-
-	matrix[0].x = cos(angle);
-	matrix[0].y = sin(angle);
-	matrix[1].x = -sin(angle);
-	matrix[1].y = cos(angle);
-
-	return matrix;
-}
+Chunk ground{voxel_vertices};
+Chunk trees{voxel_vertices};
 
 void set_perspective_matrix()
 {
@@ -142,11 +228,27 @@ void create_ground(int const width, int const height)
 	{
 		for(int j{}; j < width; ++j)
 		{
-			ground.create_voxel(Voxel_Type::grass,
-					glm::vec3{static_cast<float>(i), 0.f, static_cast<float>(j)});
+			ground.create(Voxel_Type::grass,
+					glm::vec3{static_cast<float>(i), 0.f, static_cast<float>(j)},
+					program);
 		}
 	}
 }
+
+//void create_trees(int const count, int const distribution)
+//{
+//	mt19937 gen{rd()};
+//	std::uniform_int_distribution<> distrib(1, distribution);
+//
+//	for(int i{}; i < count; ++i)
+//	{
+//		trees.push_back(
+//			Voxel{static_cast<float>(distrib(gen)),
+//				1.f,
+//				static_cast<float>(distrib(gen)),
+//				Voxel::TREE});
+//	}
+//}
 
 //void randomize_flowers(int const count, int const distribution)
 //{
@@ -173,43 +275,17 @@ void create_ground(int const width, int const height)
 //		}
 //	}
 //}
-//
-//void randomize_trees(int const count, int const distribution)
-//{
-//	mt19937 gen{rd()};
-//	std::uniform_int_distribution<> distrib(1, distribution);
-//
-//	for(int i{}; i < count; ++i)
-//	{
-//		trees.push_back(
-//			Voxel{static_cast<float>(distrib(gen)),
-//				1.f,
-//				static_cast<float>(distrib(gen)),
-//				Voxel::TREE});
-//	}
-//}
-//
-//void load_trees()
-//{
-//	for(unsigned i{}; i < trees.size(); ++i)
-//	{
-//		for(int j{}; j < 13; ++j)
-//		{
-//			for(unsigned k{}; k < voxel_vertices.size(); ++k)
-//			{
-//				vertex_positions_trees.push_back(voxel_vertices.at(k));
-//			}
-//		}
-//	}
-//}
 
 void init()
 {
 	program.init();
 	ground.init_vao();
 	create_ground(grid_width, grid_height);
-	ground.load_vertices();
 	ground.init_vbo();
+
+	trees.init_vao();
+	trees.create(Voxel_Type::tree, glm::vec3{50.f, 1.f, 50.f}, program);
+	trees.init_vbo();
 
 	//randomize_flowers(100, 100);
 	//load_flowers();
@@ -249,7 +325,8 @@ void display()
 	set_perspective_matrix();
 	camera.set_camera_matrix(program.get());
 	program.use();
-	ground.render(program);
+	ground.render();
+	trees.render();
 
 	//glBindVertexArray(vao_flowers);
 
@@ -262,69 +339,6 @@ void display()
 
 	//	glBindTexture(GL_TEXTURE_2D, flower_texture);
 	//	glDrawArrays(GL_TRIANGLES, 0, 3 * 8);
-	//}
-
-	//glBindVertexArray(vao_trees);
-
-	//for(auto tree : trees)
-	//{
-	//	glm::vec3 pos{tree.get_position()};
-	//	glBindTexture(GL_TEXTURE_2D, dirt_texture);
-	//	for(int i{}; i < 4; ++i)
-	//	{
-	//		glm::mat4 matrix{translate_matrix(glm::vec3{pos.x, pos.y + i, -pos.z - 0.5f})};
-	//		int transform_matrix_location{glGetUniformLocation(program.get(), "transformMatrix")};
-	//		glUniformMatrix4fv(transform_matrix_location, 1, GL_FALSE, glm::value_ptr(matrix));
-	//		glDrawArrays(GL_TRIANGLES, 0, 3 * 12);
-	//	}
-
-	//	glm::mat4 matrix{translate_matrix(glm::vec3{pos.x, pos.y + 4, -pos.z - 0.5f})};
-	//	int transform_matrix_location{glGetUniformLocation(program.get(), "transformMatrix")};
-	//	glUniformMatrix4fv(transform_matrix_location, 1, GL_FALSE, glm::value_ptr(matrix));
-
-	//	glBindTexture(GL_TEXTURE_2D, grass_texture);
-	//	glDrawArrays(GL_TRIANGLES, 0, 3 * 12);
-
-	//	//crown starts
-	//	matrix = translate_matrix(glm::vec3{pos.x + 1, pos.y + 3, -pos.z - 1 - 0.5f});
-	//	transform_matrix_location = glGetUniformLocation(program.get(), "transformMatrix");
-	//	glUniformMatrix4fv(transform_matrix_location, 1, GL_FALSE, glm::value_ptr(matrix));
-	//	glDrawArrays(GL_TRIANGLES, 0, 3 * 12);
-
-	//	matrix = translate_matrix(glm::vec3{pos.x + 1, pos.y + 3, -pos.z - 0.5f});
-	//	transform_matrix_location = glGetUniformLocation(program.get(), "transformMatrix");
-	//	glUniformMatrix4fv(transform_matrix_location, 1, GL_FALSE, glm::value_ptr(matrix));
-	//	glDrawArrays(GL_TRIANGLES, 0, 3 * 12);
-
-	//	matrix = translate_matrix(glm::vec3{pos.x + 1, pos.y + 3, -pos.z + 1 - 0.5f});
-	//	transform_matrix_location = glGetUniformLocation(program.get(), "transformMatrix");
-	//	glUniformMatrix4fv(transform_matrix_location, 1, GL_FALSE, glm::value_ptr(matrix));
-	//	glDrawArrays(GL_TRIANGLES, 0, 3 * 12);
-
-	//	matrix = translate_matrix(glm::vec3{pos.x, pos.y + 3, -pos.z - 1 - 0.5f});
-	//	transform_matrix_location = glGetUniformLocation(program.get(), "transformMatrix");
-	//	glUniformMatrix4fv(transform_matrix_location, 1, GL_FALSE, glm::value_ptr(matrix));
-	//	glDrawArrays(GL_TRIANGLES, 0, 3 * 12);
-
-	//	matrix = translate_matrix(glm::vec3{pos.x, pos.y + 3, -pos.z + 1 - 0.5f});
-	//	transform_matrix_location = glGetUniformLocation(program.get(), "transformMatrix");
-	//	glUniformMatrix4fv(transform_matrix_location, 1, GL_FALSE, glm::value_ptr(matrix));
-	//	glDrawArrays(GL_TRIANGLES, 0, 3 * 12);
-
-	//	matrix = translate_matrix(glm::vec3{pos.x - 1, pos.y + 3, -pos.z - 1 - 0.5f});
-	//	transform_matrix_location = glGetUniformLocation(program.get(), "transformMatrix");
-	//	glUniformMatrix4fv(transform_matrix_location, 1, GL_FALSE, glm::value_ptr(matrix));
-	//	glDrawArrays(GL_TRIANGLES, 0, 3 * 12);
-
-	//	matrix = translate_matrix(glm::vec3{pos.x - 1, pos.y + 3, -pos.z - 0.5f});
-	//	transform_matrix_location = glGetUniformLocation(program.get(), "transformMatrix");
-	//	glUniformMatrix4fv(transform_matrix_location, 1, GL_FALSE, glm::value_ptr(matrix));
-	//	glDrawArrays(GL_TRIANGLES, 0, 3 * 12);
-
-	//	matrix = translate_matrix(glm::vec3{pos.x - 1, pos.y + 3, -pos.z + 1 - 0.5f});
-	//	transform_matrix_location = glGetUniformLocation(program.get(), "transformMatrix");
-	//	glUniformMatrix4fv(transform_matrix_location, 1, GL_FALSE, glm::value_ptr(matrix));
-	//	glDrawArrays(GL_TRIANGLES, 0, 3 * 12);
 	//}
 	program.clear_use();
 }

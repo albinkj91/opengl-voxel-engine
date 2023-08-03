@@ -20,7 +20,7 @@ LDFLAGS += -L$(SFML_ROOT)/lib -lsfml-graphics -lsfml-window -lsfml-system
 GLFLAGS += -lGL -lX11 -lpthread -lXi -lXrandr -ldl
 
 # Object modules
-OBJECTS =  $(OBJDIR)/main.o $(OBJDIR)/Camera.o $(OBJDIR)/Shader.o $(OBJDIR)/Program.o $(OBJDIR)/Voxel.o $(OBJDIR)/Texture.o $(OBJDIR)/Grass.o $(OBJDIR)/Chunk.o $(OBJDIR)/stb_image.o
+OBJECTS =  $(OBJDIR)/main.o $(OBJDIR)/Camera.o $(OBJDIR)/Shader.o $(OBJDIR)/Program.o $(OBJDIR)/Voxel.o $(OBJDIR)/Texture.o $(OBJDIR)/Grass.o $(OBJDIR)/Tree.o $(OBJDIR)/Chunk.o $(OBJDIR)/stb_image.o
 
 # Main objetice - created with 'make' or 'make main'.
 main: $(OBJECTS) Makefile
@@ -47,6 +47,9 @@ $(OBJDIR)/Texture.o: $(SRC)/Texture.cc $(IDIR)/Texture.h
 
 $(OBJDIR)/Grass.o: $(SRC)/Grass.cc $(IDIR)/Grass.h
 	$(CCC) -I$(IDIR) $(CCFLAGS) -c $(SRC)/Grass.cc -o $(OBJDIR)/Grass.o
+
+$(OBJDIR)/Tree.o: $(SRC)/Tree.cc $(IDIR)/Tree.h
+	$(CCC) -I$(IDIR) $(CCFLAGS) -c $(SRC)/Tree.cc -o $(OBJDIR)/Tree.o
 
 $(OBJDIR)/Chunk.o: $(SRC)/Chunk.cc $(IDIR)/Chunk.h
 	$(CCC) -I$(IDIR) $(CCFLAGS) -c $(SRC)/Chunk.cc -o $(OBJDIR)/Chunk.o

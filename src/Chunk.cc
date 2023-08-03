@@ -2,27 +2,23 @@
 
 #include "Chunk.h"
 #include "Grass.h"
+#include "Tree.h"
 #include <SFML/OpenGL.hpp>
-#include <glm/gtc/type_ptr.hpp>
 #include <algorithm>
 #include <iostream>
 
 using namespace std;
 
-Chunk::Chunk()
-	:voxels{}, vertices{}, vao{}, vbo{}
+Chunk::Chunk(vector<float> const& vertices)
+	:voxels{}, vertices{vertices}, vao{}, vbo{}
 { }
 
-void Chunk::render(Program const& program)
+void Chunk::render()
 {
 	bind();
 	for_each(voxels.begin(), voxels.end(),
-		[this, &program](unique_ptr<Voxel> const& voxel)
+		[this](unique_ptr<Voxel> const& voxel)
 		{
-			glm::vec3 pos{voxel->get_position()};
-			glm::mat4 matrix{translate_matrix(glm::vec3{pos.x, pos.y, -pos.z - 0.5f})};
-			int transform_matrix_location{glGetUniformLocation(program.get(), "transformMatrix")};
-			glUniformMatrix4fv(transform_matrix_location, 1, GL_FALSE, glm::value_ptr(matrix));
 			voxel->render();
 		});
 	unbind();
@@ -53,124 +49,14 @@ void Chunk::init_vbo()
     glBindBuffer(GL_ARRAY_BUFFER, 0);
 }
 
-void Chunk::load_vertices()
-{
-	vector<float> voxel_vertices{
-		-0.5f, 0.5f, 0.5f, 1.f,
-		0.5f, 0.5f, 0.5f, 1.f,
-		0.5f, -0.5f, 0.5f, 1.f,
-
-		-0.5f, 0.5f, 0.5f, 1.f,
-		0.5f, -0.5f, 0.5f, 1.f,
-		-0.5f, -0.5f, 0.5f, 1.f,
-
-		-0.5f, 0.5f, -0.5f, 1.f,
-		-0.5f, 0.5f, 0.5f, 1.f,
-		-0.5f, -0.5f, 0.5f, 1.f,
-
-		-0.5f, 0.5f, -0.5f, 1.f,
-		-0.5f, -0.5f, 0.5f, 1.f,
-		-0.5f, -0.5f, -0.5f, 1.f,
-
-		0.5f, 0.5f, 0.5f, 1.f,
-		0.5f, 0.5f, -0.5f, 1.f,
-		0.5f, -0.5f, -0.5f, 1.f,
-
-		0.5f, 0.5f, 0.5f, 1.f,
-		0.5f, -0.5f, -0.5f, 1.f,
-		0.5f, -0.5f, 0.5f, 1.f,
-
-		0.5f, 0.5f, -0.5f, 1.f,
-		-0.5f, 0.5f, -0.5f, 1.f,
-		-0.5f, -0.5f, -0.5f, 1.f,
-
-		0.5f, 0.5f, -0.5f, 1.f,
-		-0.5f, -0.5f, -0.5f, 1.f,
-		0.5f, -0.5f, -0.5f, 1.f,
-
-		-0.5f, -0.5f, 0.5f, 1.f,
-		0.5f, -0.5f, 0.5f, 1.f,
-		0.5f, -0.5f, -0.5f, 1.f,
-
-		-0.5f, -0.5f, 0.5f, 1.f,
-		0.5f, -0.5f, -0.5f, 1.f,
-		-0.5f, -0.5f, -0.5f, 1.f,
-
-		-0.5f, 0.5f, -0.5f, 1.f,
-		0.5f, 0.5f, -0.5f, 1.f,
-		0.5f, 0.5f, 0.5f, 1.f,
-
-		-0.5f, 0.5f, -0.5f, 1.f,
-		0.5f, 0.5f, 0.5f, 1.f,
-		-0.5f, 0.5f, 0.5f, 1.f,
-
-		0.f,  1.f,
-		1.f, 1.f,
-		1.f, 0.f,
-
-		0.f,  1.f,
-		1.f, 0.f,
-		0.f,  0.f,
-
-		0.f,  1.f,
-		1.f, 1.f,
-		1.f, 0.f,
-
-		0.f,  1.f,
-		1.f, 0.f,
-		0.f,  0.f,
-
-		0.f,  1.f,
-		1.f, 1.f,
-		1.f, 0.f,
-
-		0.f,  1.f,
-		1.f, 0.f,
-		0.f,  0.f,
-
-		0.f,  1.f,
-		1.f, 1.f,
-		1.f, 0.f,
-
-		0.f,  1.f,
-		1.f, 0.f,
-		0.f,  0.f,
-
-		0.f,  1.f,
-		1.f, 1.f,
-		1.f, 0.f,
-
-		0.f,  1.f,
-		1.f, 0.f,
-		0.f,  0.f,
-
-		0.f,  1.f,
-		1.f, 1.f,
-		1.f, 0.f,
-
-		0.f,  1.f,
-		1.f, 0.f,
-		0.f,  0.f
-	};
-
-	for_each(voxels.begin(), voxels.end(),
-		[this, &voxel_vertices](unique_ptr<Voxel> const&)
-		{
-			for_each(voxel_vertices.begin(), voxel_vertices.end(),
-				[this](float const vertex)
-				{
-					vertices.push_back(vertex);
-				});
-		});
-}
-
-void Chunk::create_voxel(Voxel_Type const type, glm::vec3 const& pos)
+void Chunk::create(Voxel_Type const type, glm::vec3 const& pos, Program const& program)
 {
 	switch(type)
 	{
 		case Voxel_Type::grass:
 			voxels.push_back(make_unique<Grass>(Grass{
 				pos,
+				program,
 				Texture::load("assets/grass.png"),
 				Texture::load("assets/dirt-grass.png"),
 				Texture::load("assets/dirt.png")}));
@@ -179,9 +65,14 @@ void Chunk::create_voxel(Voxel_Type const type, glm::vec3 const& pos)
 			break;
 		case Voxel_Type::flower:
 			break;
-		case Voxel_Type::wood:
-			break;
-		case Voxel_Type::leaves:
+		case Voxel_Type::tree:
+			voxels.push_back(make_unique<Tree>(Tree{
+				pos,
+				program,
+				5,
+				Texture::load("assets/grass.png"),
+				Texture::load("assets/dirt.png"),
+				Texture::load("assets/dirt.png")}));
 			break;
 		default:
 			cout << "No matching voxel type." << endl;
@@ -202,14 +93,4 @@ void Chunk::bind() const
 void Chunk::unbind() const
 {
 	glBindVertexArray(0);
-}
-
-glm::mat4 Chunk::translate_matrix(glm::vec3 const& translate)
-{
-    glm::mat4 matrix{1.f};
-
-    matrix[3].x = translate.x;
-    matrix[3].y = translate.y;
-    matrix[3].z = translate.z;
-    return matrix;
 }
