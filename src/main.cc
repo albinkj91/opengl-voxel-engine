@@ -263,9 +263,9 @@ void randomize_trees(int const count, float const distribution, int const height
 					floor(distrib_placement(gen_placement))},
 				program,
 				distrib_height(gen_height),
-				Texture::load("assets/grass.png"),
-				Texture::load("assets/dirt.png"),
-				Texture::load("assets/dirt.png")}));
+				Texture::load("assets/leaves.png"),
+				Texture::load("assets/bark.png"),
+				Texture::load("assets/bark.png")}));
 	}
 }
 

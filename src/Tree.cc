@@ -34,6 +34,26 @@ void Tree::render() const
 	draw_leaves(glm::vec3{-1.f, height - 1, -1.f});
 	draw_leaves(glm::vec3{-1.f, height - 1, 0.f});
 	draw_leaves(glm::vec3{-1.f, height - 1, 1.f});
+
+	draw_leaves(glm::vec3{2.f, height - 2, -2.f});
+	draw_leaves(glm::vec3{2.f, height - 2, -1.f});
+	draw_leaves(glm::vec3{2.f, height - 2, 0.f});
+	draw_leaves(glm::vec3{2.f, height - 2, 1.f});
+	draw_leaves(glm::vec3{2.f, height - 2, 2.f});
+
+	draw_leaves(glm::vec3{-1.f, height - 2, 2.f});
+	draw_leaves(glm::vec3{0.f, height - 2, 2.f});
+	draw_leaves(glm::vec3{1.f, height - 2, 2.f});
+
+	draw_leaves(glm::vec3{-1.f, height - 2, -2.f});
+	draw_leaves(glm::vec3{0.f, height - 2, -2.f});
+	draw_leaves(glm::vec3{1.f, height - 2, -2.f});
+
+	draw_leaves(glm::vec3{-2.f, height - 2, -2.f});
+	draw_leaves(glm::vec3{-2.f, height - 2, -1.f});
+	draw_leaves(glm::vec3{-2.f, height - 2, 0.f});
+	draw_leaves(glm::vec3{-2.f, height - 2, 1.f});
+	draw_leaves(glm::vec3{-2.f, height - 2, 2.f});
 }
 
 void Tree::draw_trunk() const
