@@ -1,7 +1,6 @@
 #define GL_GLEXT_PROTOTYPES
 
 #include <SFML/Window.hpp>
-#include <SFML/OpenGL.hpp>
 #include <vector>
 #include <iostream>
 #include <random>
@@ -13,6 +12,7 @@
 #include "Chunk.h"
 #include "Grass.h"
 #include "Tree.h"
+#include "Flower.h"
 #include "Texture.h"
 
 using namespace std;
@@ -22,9 +22,12 @@ const float pi{3.14159f};
 const int grid_width{100};
 const int grid_height{100};
 
-const int tree_count{20};
+const int tree_count{40};
 const float tree_distribution{100.f};
 const int tree_height_variance{20};
+
+const int flower_count{100};
+const float flower_distribution{100.f};
 
 float zNear{0.5f};
 float zFar{1000.0f};
@@ -38,9 +41,10 @@ float pitch{};
 float total_pitch{};
 
 Program program{};
-random_device random_device_tree_placement{};
+
 random_device rd_tree_placement{};
 random_device rd_tree_height{};
+random_device rd_flower_placement{};
 
 Camera camera{
 	glm::vec4{0.f, 0.f, 3.f, 0.f},
@@ -216,6 +220,7 @@ const vector<float> flower_vertices
 
 Chunk ground{voxel_vertices};
 Chunk trees{voxel_vertices};
+Chunk flowers{flower_vertices};
 
 void set_perspective_matrix()
 {
@@ -243,7 +248,7 @@ void create_ground(int const width, int const height)
 	}
 }
 
-void create_trees(int const count, float const distribution, int const height)
+void randomize_trees(int const count, float const distribution, int const height)
 {
 	mt19937 gen_placement{rd_tree_placement()};
 	mt19937 gen_height{rd_tree_height()};
@@ -254,8 +259,8 @@ void create_trees(int const count, float const distribution, int const height)
 	{
 		trees.add(make_unique<Tree>(
 			Tree{glm::vec3{floor(distrib_placement(gen_placement)),
-				1.f,
-				floor(distrib_placement(gen_placement))},
+					1.f,
+					floor(distrib_placement(gen_placement))},
 				program,
 				distrib_height(gen_height),
 				Texture::load("assets/grass.png"),
@@ -264,45 +269,37 @@ void create_trees(int const count, float const distribution, int const height)
 	}
 }
 
-//void randomize_flowers(int const count, int const distribution)
-//{
-//	mt19937 gen{rd()};
-//	std::uniform_int_distribution<> distrib(1, distribution);
-//
-//	for(int i{}; i < count; ++i)
-//	{
-//		flowers.push_back(
-//			Voxel{static_cast<float>(distrib(gen)),
-//				1.f,
-//				static_cast<float>(distrib(gen)),
-//				Voxel::FLOWER});
-//	}
-//}
-//
-//void load_flowers()
-//{
-//	for(unsigned i{}; i < flowers.size(); ++i)
-//	{
-//		for(unsigned j{}; j < flower_vertices.size(); ++j)
-//		{
-//			vertex_positions_flowers.push_back(flower_vertices.at(j));
-//		}
-//	}
-//}
+void randomize_flowers(int const count, int const distribution)
+{
+	mt19937 gen{rd_flower_placement()};
+	std::uniform_real_distribution<> distrib(1, distribution);
+
+	for(int i{}; i < count; ++i)
+	{
+		flowers.add(make_unique<Flower>(
+			Flower{glm::vec3{floor(distrib(gen)),
+					1.f,
+					floor(distrib(gen))},
+				program,
+				Texture::load("assets/flower.png")}));
+	}
+}
 
 void init()
 {
 	program.init();
+
 	ground.init_vao();
 	create_ground(grid_width, grid_height);
 	ground.init_vbo();
 
-	create_trees(tree_count, tree_distribution, tree_height_variance);
 	trees.init_vao();
+	randomize_trees(tree_count, tree_distribution, tree_height_variance);
 	trees.init_vbo();
 
-	//randomize_flowers(100, 100);
-	//load_flowers();
+	flowers.init_vao();
+	randomize_flowers(flower_count, flower_distribution);
+	flowers.init_vbo();
 
 	glBindVertexArray(0);
 
@@ -320,19 +317,7 @@ void display()
 	program.use();
 	ground.render();
 	trees.render();
-
-	//glBindVertexArray(vao_flowers);
-
-	//for(auto flower : flowers)
-	//{
-	//	glm::vec3 pos{flower.get_position()};
-	//	glm::mat4 matrix{translate_matrix(glm::vec3{pos.x, pos.y, -pos.z - 0.5f})};
-	//	int transform_matrix_location{glGetUniformLocation(program.get(), "transformMatrix")};
-	//	glUniformMatrix4fv(transform_matrix_location, 1, GL_FALSE, glm::value_ptr(matrix));
-
-	//	glBindTexture(GL_TEXTURE_2D, flower_texture);
-	//	glDrawArrays(GL_TRIANGLES, 0, 3 * 8);
-	//}
+	flowers.render();
 	program.clear_use();
 }
 

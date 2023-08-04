@@ -1,7 +1,6 @@
 #define GL_GLEXT_PROTOTYPES
 
 #include "Chunk.h"
-#include <SFML/OpenGL.hpp>
 #include <algorithm>
 #include <iostream>
 
@@ -38,11 +37,12 @@ void Chunk::init_vbo()
             vertices.data(),
             GL_STATIC_DRAW);
 
+	auto attrib_offset{sizeof(float) * static_cast<int>(vertices.size() * (2.f/3.f))};
 	glBindBuffer(GL_ARRAY_BUFFER, vbo);
     glEnableVertexAttribArray(0);
     glEnableVertexAttribArray(1);
     glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 0, 0);
-    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 0, (void*)(4 * 4 * 3 * 12));
+    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 0, (void*)attrib_offset);
 
     glBindBuffer(GL_ARRAY_BUFFER, 0);
 }

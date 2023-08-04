@@ -2,7 +2,6 @@
 
 #include "Program.h"
 #include <iostream>
-#include <SFML/OpenGL.hpp>
 #include <algorithm>
 
 Program::Program()

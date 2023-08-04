@@ -8,9 +8,9 @@ class Grass : public Voxel
 public:
 	Grass(glm::vec3 const& position,
 		Program const& program,
-		unsigned const int tx_top,
-		unsigned const int tx_sides,
-		unsigned const int tx_bottom);
+		unsigned int const tx_top,
+		unsigned int const tx_sides,
+		unsigned int const tx_bottom);
 
 	void render() const override;
 private:
