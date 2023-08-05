@@ -24,7 +24,7 @@ const int grid_height{100};
 
 const int tree_count{40};
 const float tree_distribution{100.f};
-const int tree_height_variance{20};
+const int tree_height_variance{10};
 
 const int flower_count{100};
 const float flower_distribution{100.f};
@@ -224,7 +224,7 @@ Chunk flowers{flower_vertices};
 
 void set_perspective_matrix()
 {
-	glm::mat4 matrix{glm::perspective(glm::radians(30.0f), screen_width / screen_height, zNear, zFar)};
+	glm::mat4 matrix{glm::perspective(glm::radians(45.0f), screen_width / screen_height, zNear, zFar)};
 
 	program.use();
 	int perspective_matrix_location{glGetUniformLocation(program.get(), "perspectiveMatrix")};
