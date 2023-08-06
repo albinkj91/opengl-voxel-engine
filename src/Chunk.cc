@@ -37,12 +37,15 @@ void Chunk::init_vbo()
             vertices.data(),
             GL_STATIC_DRAW);
 
-	auto attrib_offset{sizeof(float) * static_cast<int>(vertices.size() * (2.f/3.f))};
+	auto texture_offset{sizeof(float) * static_cast<int>(vertices.size() * (4.f/9.f))};
+	auto normal_offset{sizeof(float) * static_cast<int>(vertices.size() * (2.f/3.f))};
 	glBindBuffer(GL_ARRAY_BUFFER, vbo);
     glEnableVertexAttribArray(0);
     glEnableVertexAttribArray(1);
+    glEnableVertexAttribArray(2);
     glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 0, 0);
-    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 0, (void*)attrib_offset);
+    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 0, (void*)texture_offset);
+    glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 0, (void*)normal_offset);
 
     glBindBuffer(GL_ARRAY_BUFFER, 0);
 }
@@ -50,33 +53,6 @@ void Chunk::init_vbo()
 void Chunk::add(unique_ptr<Voxel> voxel)
 {
 	voxels.push_back(move(voxel));
-	//switch(type)
-	//{
-	//	case Voxel_Type::grass:
-	//		voxels.push_back(make_unique<Grass>(Grass{
-	//			pos,
-	//			program,
-	//			Texture::load("assets/grass.png"),
-	//			Texture::load("assets/dirt-grass.png"),
-	//			Texture::load("assets/dirt.png")}));
-	//		break;
-	//	case Voxel_Type::dirt:
-	//		break;
-	//	case Voxel_Type::flower:
-	//		break;
-	//	case Voxel_Type::tree:
-	//		voxels.push_back(make_unique<Tree>(Tree{
-	//			pos,
-	//			program,
-	//			5,
-	//			Texture::load("assets/grass.png"),
-	//			Texture::load("assets/dirt.png"),
-	//			Texture::load("assets/dirt.png")}));
-	//		break;
-	//	default:
-	//		cout << "No matching voxel type." << endl;
-	//		break;
-	//}
 }
 
 unsigned int Chunk::size() const

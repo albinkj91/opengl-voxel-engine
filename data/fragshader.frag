@@ -3,6 +3,8 @@
 out vec4 fragColor;
 
 in vec2 textureCoord;
+in float light;
+
 uniform sampler2D textureSampl;
 
 void main()
@@ -10,5 +12,7 @@ void main()
 	vec4 texColor = texture(textureSampl, textureCoord);
 	if(texColor.a < 0.95f)
 		discard;
-	fragColor = texture(textureSampl, textureCoord);
+
+	float ambience = 0.2f;
+	fragColor = texture(textureSampl, textureCoord) * (light + ambience);
 }
