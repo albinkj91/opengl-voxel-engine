@@ -13,6 +13,6 @@ void main()
 	if(texColor.a < 0.95f)
 		discard;
 
-	float ambience = 0.2f;
+	float ambience = 0.3f;
 	fragColor = texture(textureSampl, textureCoord) * (light + ambience);
 }
